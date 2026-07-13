@@ -1,0 +1,46 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "krejums",
+  "main": ".open-next/worker.js",
+
+  // The R2 buckets live in this account, not the personal one. Pinned so a
+  // deploy cannot land in the wrong account and find no bindings.
+  "account_id": "09f2d64d096cee6444956ae641fc3472",
+  "compatibility_date": "2025-09-23",
+  // Required by the OpenNext adapter.
+  "compatibility_flags": ["nodejs_compat"],
+
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  "r2_buckets": [
+    // Page images. Bound to the Worker, so uploads need no S3 keys and no CORS,
+    // and `next dev` gets a Miniflare-backed local bucket for free.
+    {
+      "binding": "PAGES_BUCKET",
+      "bucket_name": "krejums-pages"
+    },
+    // Next's incremental cache. Deliberately a separate bucket from the images.
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "krejums-next-cache"
+    }
+  ],
+
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "NEXT_CACHE_DO_QUEUE",
+        "class_name": "DOQueueHandler"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["DOQueueHandler"]
+    }
+  ]
+}

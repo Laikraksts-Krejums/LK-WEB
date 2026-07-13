@@ -1,0 +1,197 @@
+.reader {
+  max-width: 1200px;
+  margin: 0 auto;
+  scroll-margin-top: 2rem;
+  /* Vertical scrolling stays with the browser; horizontal gestures are ours
+     (swipe to turn). Overridden to `none` on the spread while zoomed. */
+  touch-action: pan-y;
+}
+
+.spread {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0;
+  filter: drop-shadow(0 1px 2px rgba(48, 48, 46, 0.08))
+    drop-shadow(0 10px 30px rgba(48, 48, 46, 0.12))
+    drop-shadow(0 40px 60px rgba(48, 48, 46, 0.08));
+
+  transform-origin: center center;
+  transition: transform 0.14s ease-out;
+  will-change: transform;
+}
+
+/* Images stay mounted while hidden so they keep loading and decoding. */
+.hidden {
+  display: none;
+}
+
+/* No transition during a live drag/pinch; keep it for discrete zoom steps. */
+.isPanning .spread {
+  transition: none;
+}
+.isZoomed .spread {
+  cursor: grab;
+  touch-action: none;
+}
+.isZoomed .spread:active {
+  cursor: grabbing;
+}
+
+.page {
+  position: relative; /* anchors the absolutely-positioned hotspots */
+  background: #fff;
+  overflow: hidden;
+  aspect-ratio: 1 / 1.414;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 50%;
+  display: none;
+}
+.page.isVisible {
+  display: block;
+}
+
+.single .page.isVisible {
+  max-width: min(540px, 90vw);
+  flex: 0 1 auto;
+  width: min(540px, 90vw);
+}
+
+.page img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Gutter fold on an open spread. v0 used :first-of-type, which never matched:
+   it counts siblings by tag, so it only ever selected page 1 (the cover), which
+   is never half of a spread. React marks the visible pages explicitly. */
+.spineLeft {
+  box-shadow: inset -8px 0 12px -8px rgba(0, 0, 0, 0.2);
+}
+.spineRight {
+  box-shadow: inset 8px 0 12px -8px rgba(0, 0, 0, 0.2);
+}
+
+/* Invisible clickable areas over printed links. Percentages, so they hold at
+   any page size. */
+.hotspot {
+  position: absolute;
+  display: block;
+  cursor: pointer;
+  background: transparent;
+  transition: background 0.18s ease;
+  z-index: 5;
+}
+.hotspot:hover {
+  background: rgba(232, 98, 60, 0.2);
+  mix-blend-mode: multiply;
+}
+
+.loading {
+  text-align: center;
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--ink-soft);
+  padding: 4rem 1rem;
+  font-size: 1.05rem;
+}
+.loading::after {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  animation: dots 1.4s infinite;
+}
+@keyframes dots {
+  0%,
+  20% {
+    content: ".";
+  }
+  40% {
+    content: "..";
+  }
+  60%,
+  100% {
+    content: "...";
+  }
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(0.5rem, 2vw, 1rem);
+  margin-top: 1.75rem;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+
+  /* A transformed element paints above in-flow siblings, so a zoomed spread
+     would cover these buttons — including the one that zooms back out. */
+  position: relative;
+  z-index: 10;
+}
+
+.btn {
+  appearance: none;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink);
+  padding: 0.55rem 1.1rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  cursor: pointer;
+  border-radius: 999px;
+  transition: all 0.18s ease;
+  min-width: 48px;
+  min-height: 40px;
+  font-weight: 700;
+}
+.btn:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+}
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.btn[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+}
+
+.indicator {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  letter-spacing: 0.05em;
+  min-width: 5em;
+  text-align: center;
+  font-weight: 700;
+}
+
+@media (max-width: 780px) {
+  .spineLeft,
+  .spineRight {
+    box-shadow: none;
+  }
+  .controls {
+    gap: 0.4rem;
+  }
+  .btn {
+    padding: 0.5rem 0.85rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spread {
+    transition: none;
+  }
+}

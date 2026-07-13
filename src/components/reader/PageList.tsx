@@ -1,0 +1,62 @@
+import type { ReaderHotspot, ReaderPage } from "@/lib/types";
+import { Hotspot } from "./Hotspot";
+import styles from "./Reader.module.css";
+
+type PageListProps = {
+  pages: ReaderPage[];
+  hotspots: ReaderHotspot[];
+  visible: number[];
+  registerImg: (index: number, el: HTMLImageElement | null) => void;
+};
+
+/**
+ * Every page stays mounted; visibility is a CSS class.
+ *
+ * Do NOT render only the visible pages. Flipping is instant because all N
+ * bitmaps are decoded and resident — unmounting an <img> lets the browser evict
+ * the bitmap and turns every page turn back into a decode. Regression test:
+ * flipping through the issue must produce zero new image requests.
+ */
+export function PageList({
+  pages,
+  hotspots,
+  visible,
+  registerImg,
+}: PageListProps) {
+  const visibleSet = new Set(visible);
+  const isSpread = visible.length === 2;
+
+  return (
+    <>
+      {pages.map((page, i) => {
+        const isVisible = visibleSet.has(i);
+        const pageHotspots = hotspots.filter((h) => h.pageNumber === i + 1);
+
+        const classes = [styles.page];
+        if (isVisible) classes.push(styles.isVisible);
+        if (isSpread && isVisible) {
+          classes.push(i === visible[0] ? styles.spineLeft : styles.spineRight);
+        }
+
+        return (
+          <div key={i} className={classes.join(" ")} data-page-index={i}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              ref={(el) => registerImg(i, el)}
+              src={page.src}
+              alt={page.alt ?? `lapa ${i + 1}`}
+              width={page.width}
+              height={page.height}
+              decoding="async"
+              loading={i < 2 ? "eager" : "lazy"}
+              draggable={false}
+            />
+            {pageHotspots.map((spot, j) => (
+              <Hotspot key={j} spot={spot} />
+            ))}
+          </div>
+        );
+      })}
+    </>
+  );
+}

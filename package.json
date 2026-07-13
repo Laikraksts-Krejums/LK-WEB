@@ -6,21 +6,32 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
+    "@sanity/client": "^7.23.0",
+    "@sanity/image-url": "^2.1.1",
+    "@sanity/ui": "^3.3.5",
+    "@sanity/vision": "^6.4.0",
     "next": "16.2.10",
+    "next-sanity": "^13.1.1",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "sanity": "^6.4.0",
+    "server-only": "^0.0.1",
+    "styled-components": "^6.4.3"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
+    "@opennextjs/cloudflare": "^1.20.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "wrangler": "^4.110.0"
   }
 }
