@@ -83,7 +83,7 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
     setCurrent(next);
   }, []);
 
-  const { isZoomed, cycleZoom, resetZoom } = useZoom({
+  const { isZoomed, zoomIn, zoomOut, resetZoom } = useZoom({
     readerRef,
     spreadRef,
     zoomedClass: styles.isZoomed,
@@ -155,7 +155,8 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
         isZoomed={isZoomed}
         onPrev={() => navigate(-1)}
         onNext={() => navigate(1)}
-        onZoom={cycleZoom}
+        onZoomIn={zoomIn}
+        onZoomOut={zoomOut}
         onFullscreen={toggleFullscreen}
       />
     </div>

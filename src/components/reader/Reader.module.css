@@ -143,20 +143,22 @@
 
 .btn {
   appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--rule);
   background: transparent;
   color: var(--ink);
-  padding: 0.55rem 1.1rem;
-  font-family: inherit;
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
   cursor: pointer;
   border-radius: 999px;
   transition: all 0.18s ease;
-  min-width: 48px;
-  min-height: 40px;
-  font-weight: 700;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+}
+.btn svg {
+  width: 18px;
+  height: 18px;
 }
 .btn:hover:not(:disabled) {
   background: var(--ink);
@@ -166,11 +168,6 @@
 .btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
-}
-.btn[aria-pressed="true"] {
-  background: var(--ink);
-  color: var(--cream);
-  border-color: var(--ink);
 }
 
 .indicator {
@@ -192,8 +189,8 @@
     gap: 0.4rem;
   }
   .btn {
-    padding: 0.5rem 0.85rem;
-    font-size: 0.75rem;
+    width: 36px;
+    height: 36px;
   }
 }
 

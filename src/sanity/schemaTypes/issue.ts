@@ -53,16 +53,8 @@ export const issue = defineType({
     defineField({
       name: "coverImage",
       title: "Cover image",
-      description: "Shown on the issue archive page.",
-      type: "image",
-      group: "content",
-      options: { hotspot: true },
-    }),
-    defineField({
-      name: "heroImage",
-      title: "Homepage poster",
       description:
-        "Optional. Leave empty and the homepage renders with no poster — this is how you take the poster down.",
+        "Shown on the issue archive page, and as the homepage poster when this is the newest issue. Leave empty and the homepage renders with no poster — this is how you take the poster down.",
       type: "image",
       group: "content",
       options: { hotspot: true },

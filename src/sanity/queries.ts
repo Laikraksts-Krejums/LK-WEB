@@ -7,7 +7,6 @@ const ISSUE_FIELDS = /* groq */ `
   publishedAt,
   blurb,
   coverImage,
-  heroImage,
   pages[]{ key, width, height, alt },
   hotspots[]{ pageNumber, target, customHref, label, left, right, top, height }
 `;

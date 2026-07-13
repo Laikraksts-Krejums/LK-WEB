@@ -135,16 +135,28 @@ export function useZoom({
     [spreadRef, clampPan, applyTransform],
   );
 
-  /** Zoom button: 1x → 2x → 3x → back to fit. */
-  const cycleZoom = useCallback(() => {
+  /** + button: one step in, capped at MAX_SCALE. */
+  const zoomIn = useCallback(() => {
     const spread = spreadRef.current;
     if (!spread) return;
     const rect = spread.getBoundingClientRect();
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
+    zoomToward(transform.current.scale + 1, cx, cy);
+  }, [spreadRef, zoomToward]);
 
-    if (transform.current.scale >= 3) resetZoom();
-    else zoomToward(transform.current.scale + 1, cx, cy);
+  /** - button: one step out, snapping to a clean fit at MIN_SCALE. */
+  const zoomOut = useCallback(() => {
+    const spread = spreadRef.current;
+    if (!spread) return;
+    if (transform.current.scale - 1 <= MIN_SCALE) {
+      resetZoom();
+      return;
+    }
+    const rect = spread.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    zoomToward(transform.current.scale - 1, cx, cy);
   }, [spreadRef, resetZoom, zoomToward]);
 
   useEffect(() => {
@@ -349,5 +361,5 @@ export function useZoom({
     resetZoom,
   ]);
 
-  return { isZoomed, cycleZoom, resetZoom };
+  return { isZoomed, zoomIn, zoomOut, resetZoom };
 }

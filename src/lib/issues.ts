@@ -44,7 +44,6 @@ type SanityIssue = {
   publishedAt?: string;
   blurb?: string;
   coverImage?: SanityImageRef;
-  heroImage?: SanityImageRef;
   pages?: { key: string; width?: number; height?: number; alt?: string }[];
   hotspots?: SanityHotspot[];
 };
@@ -98,7 +97,7 @@ function resolveHotspot(
 const HERO_WIDTH = 900;
 
 function toIssue(doc: SanityIssue, settings: SiteSettings): Issue {
-  const hero = imageAspect(doc.heroImage, HERO_WIDTH);
+  const hero = imageAspect(doc.coverImage, HERO_WIDTH);
 
   return {
     number: doc.number,
@@ -107,7 +106,7 @@ function toIssue(doc: SanityIssue, settings: SiteSettings): Issue {
     publishedAt: doc.publishedAt,
     blurb: doc.blurb,
     coverUrl: doc.coverImage ? urlForImage(doc.coverImage, 800) : undefined,
-    heroUrl: doc.heroImage ? urlForImage(doc.heroImage, HERO_WIDTH) : undefined,
+    heroUrl: doc.coverImage ? urlForImage(doc.coverImage, HERO_WIDTH) : undefined,
     heroWidth: hero?.width,
     heroHeight: hero?.height,
     pages: (doc.pages ?? []).map((page, i) => ({

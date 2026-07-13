@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  IconFullscreen,
+  IconNext,
+  IconPrev,
+  IconZoomIn,
+  IconZoomOut,
+} from "./icons";
 import styles from "./Reader.module.css";
 
 type ControlsProps = {
@@ -10,7 +17,8 @@ type ControlsProps = {
   isZoomed: boolean;
   onPrev: () => void;
   onNext: () => void;
-  onZoom: () => void;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
   onFullscreen: () => void;
 };
 
@@ -22,7 +30,8 @@ export function ReaderControls({
   isZoomed,
   onPrev,
   onNext,
-  onZoom,
+  onZoomIn,
+  onZoomOut,
   onFullscreen,
 }: ControlsProps) {
   return (
@@ -33,7 +42,7 @@ export function ReaderControls({
         disabled={!canPrev}
         aria-label="iepriekšējā lapa"
       >
-        ←
+        <IconPrev />
       </button>
       <span className={styles.indicator} aria-live="polite">
         {label} / {totalPages}
@@ -44,22 +53,25 @@ export function ReaderControls({
         disabled={!canNext}
         aria-label="nākošā lapa"
       >
-        →
+        <IconNext />
       </button>
       <button
         className={styles.btn}
-        onClick={onZoom}
-        aria-label="tuvināt lapu"
-        aria-pressed={isZoomed}
+        onClick={onZoomOut}
+        disabled={!isZoomed}
+        aria-label="tālināt"
       >
-        tuvināt
+        <IconZoomOut />
+      </button>
+      <button className={styles.btn} onClick={onZoomIn} aria-label="tuvināt">
+        <IconZoomIn />
       </button>
       <button
         className={styles.btn}
         onClick={onFullscreen}
         aria-label="pilnekrāns"
       >
-        pilnekrāns
+        <IconFullscreen />
       </button>
     </div>
   );
