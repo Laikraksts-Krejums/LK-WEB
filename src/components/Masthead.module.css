@@ -4,6 +4,12 @@
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: clamp(1rem, 2vw, 1.5rem);
+
+  /* The reader's spread is transformed, and a transformed element paints above
+     its in-flow siblings — without this, a zoomed spread would cover an open
+     issue menu. Same reason .controls carries a z-index in Reader.module.css. */
+  position: relative;
+  z-index: 20;
 }
 
 .logo {
@@ -17,18 +23,6 @@
   transform: rotate(2deg) scale(1.05);
 }
 
-.slogan {
-  display: block;
-  width: clamp(120px, 16vw, 180px);
-  height: auto;
-  /* Slight tilt to counterbalance the logo */
-  transform: rotate(1.5deg);
-  transition: transform 0.5s cubic-bezier(0.3, 1.3, 0.4, 1);
-}
-.sloganLink:hover .slogan {
-  transform: rotate(-1deg) scale(1.03);
-}
-
 @media (max-width: 780px) {
   .masthead {
     gap: 0.5rem;
@@ -36,8 +30,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .logo,
-  .slogan {
+  .logo {
     transition: none;
   }
 }

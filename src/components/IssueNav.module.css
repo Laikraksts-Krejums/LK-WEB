@@ -1,0 +1,107 @@
+.nav {
+  position: relative;
+}
+
+.trigger {
+  composes: pill from "./ui/pill.module.css";
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  min-width: 240px;
+  max-width: min(320px, calc(100vw - 2rem));
+  max-height: min(60vh, 420px);
+  overflow-y: auto;
+  background: var(--cream);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  box-shadow:
+    0 2px 4px rgba(48, 48, 46, 0.06),
+    0 12px 32px rgba(48, 48, 46, 0.16);
+  padding: 0.4rem;
+  font-family: var(--font-mono);
+  animation: open 0.16s ease-out;
+}
+
+@keyframes open {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--ink);
+  transition: background 0.14s ease;
+}
+.item:hover {
+  background: var(--cream-deep);
+}
+
+.number {
+  flex: none;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color: var(--orange);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--orange);
+}
+
+.all {
+  display: block;
+  margin-top: 0.4rem;
+  padding: 0.6rem 0.7rem;
+  border-top: 1px solid var(--rule);
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  transition: color 0.14s ease;
+}
+.all:hover {
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+  .item,
+  .all {
+    transition: none;
+  }
+}

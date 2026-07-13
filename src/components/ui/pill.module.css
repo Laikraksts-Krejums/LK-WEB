@@ -1,0 +1,37 @@
+/* The one round icon button on the site. The reader's controls and the
+   masthead's issue menu both compose this, so they cannot drift apart. */
+.pill {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 999px;
+  transition: all 0.18s ease;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+}
+.pill svg {
+  width: 18px;
+  height: 18px;
+}
+.pill:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+}
+.pill:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+@media (max-width: 780px) {
+  .pill {
+    width: 36px;
+    height: 36px;
+  }
+}

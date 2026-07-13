@@ -1,6 +1,6 @@
 import "server-only";
 import { client } from "@/sanity/client";
-import { imageAspect, urlForImage } from "@/sanity/image";
+import { urlForImage } from "@/sanity/image";
 import {
   ALL_ISSUES_QUERY,
   ISSUE_BY_SLUG_QUERY,
@@ -81,11 +81,7 @@ function resolveHotspot(spot: SanityHotspot): ReaderHotspot | null {
   };
 }
 
-const HERO_WIDTH = 900;
-
 function toIssue(doc: SanityIssue): Issue {
-  const hero = imageAspect(doc.coverImage, HERO_WIDTH);
-
   return {
     number: doc.number,
     title: doc.title,
@@ -93,9 +89,6 @@ function toIssue(doc: SanityIssue): Issue {
     publishedAt: doc.publishedAt,
     blurb: doc.blurb,
     coverUrl: doc.coverImage ? urlForImage(doc.coverImage, 800) : undefined,
-    heroUrl: doc.coverImage ? urlForImage(doc.coverImage, HERO_WIDTH) : undefined,
-    heroWidth: hero?.width,
-    heroHeight: hero?.height,
     pages: (doc.pages ?? []).map((page, i) => ({
       src: r2PublicUrl(page.key),
       width: page.width || 1400,

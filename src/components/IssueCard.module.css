@@ -1,3 +1,14 @@
+.heading {
+  margin: clamp(1rem, 2vw, 1.5rem) auto 0;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-size: clamp(0.85rem, 1.4vw, 0.98rem);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));

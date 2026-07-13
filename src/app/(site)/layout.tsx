@@ -1,5 +1,6 @@
 import styles from "../layout.module.css";
-import { getSiteLinkUrls, getSiteSettings } from "@/lib/issues";
+import { Masthead } from "@/components/Masthead";
+import { getAllIssues, getSiteLinkUrls, getSiteSettings } from "@/lib/issues";
 import { SITE_URL } from "@/lib/site";
 
 export default async function SiteLayout({
@@ -7,9 +8,10 @@ export default async function SiteLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [settings, linkUrls] = await Promise.all([
+  const [settings, linkUrls, issues] = await Promise.all([
     getSiteSettings(),
     getSiteLinkUrls(),
+    getAllIssues(),
   ]);
 
   const jsonLd = {
@@ -35,7 +37,10 @@ export default async function SiteLayout({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <div className={styles.shell}>{children}</div>
+      <div className={styles.shell}>
+        <Masthead issues={issues} />
+        {children}
+      </div>
     </>
   );
 }

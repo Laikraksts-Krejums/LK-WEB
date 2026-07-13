@@ -154,32 +154,7 @@
 }
 
 .btn {
-  appearance: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--rule);
-  background: transparent;
-  color: var(--ink);
-  cursor: pointer;
-  border-radius: 999px;
-  transition: all 0.18s ease;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-}
-.btn svg {
-  width: 18px;
-  height: 18px;
-}
-.btn:hover:not(:disabled) {
-  background: var(--ink);
-  color: var(--cream);
-  border-color: var(--ink);
-}
-.btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
+  composes: pill from "../ui/pill.module.css";
 }
 
 .indicator {
@@ -204,10 +179,6 @@
   }
   .controls {
     gap: 0.4rem;
-  }
-  .btn {
-    width: 36px;
-    height: 36px;
   }
 }
 

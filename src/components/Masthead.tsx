@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { IssueNav } from "./IssueNav";
+import type { IssueSummary } from "@/lib/issues";
 import styles from "./Masthead.module.css";
 
 /** Brand chrome: static files, not CMS content. */
-export function Masthead() {
+export function Masthead({ issues }: { issues: IssueSummary[] }) {
   return (
     <header className={styles.masthead}>
       <Link href="/" aria-label="krējums." className={styles.logoLink}>
@@ -15,20 +17,7 @@ export function Masthead() {
           height={273}
         />
       </Link>
-      <a
-        href="#reader"
-        aria-label="nenoliec karoti — atvērt laikrakstu"
-        className={styles.sloganLink}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/slogan.webp"
-          alt="nenoliec karoti."
-          className={styles.slogan}
-          width={563}
-          height={244}
-        />
-      </a>
+      <IssueNav issues={issues} />
     </header>
   );
 }

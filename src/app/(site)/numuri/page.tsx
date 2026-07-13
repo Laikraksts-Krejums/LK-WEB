@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { IssueCard } from "@/components/IssueCard";
-import { Masthead } from "@/components/Masthead";
-import { Tagline } from "@/components/Tagline";
 import { getAllIssues } from "@/lib/issues";
 import styles from "@/components/IssueCard.module.css";
 
@@ -19,30 +17,27 @@ export default async function ArchivePage() {
   const issues = await getAllIssues();
 
   return (
-    <>
-      <Masthead />
-      <main>
-        <Tagline>visi numuri</Tagline>
+    <main>
+      <h1 className={styles.heading}>visi numuri</h1>
 
-        {issues.length === 0 ? (
-          <p
-            style={{
-              textAlign: "center",
-              fontStyle: "italic",
-              color: "var(--ink-soft)",
-              padding: "4rem 1rem",
-            }}
-          >
-            vēl nav neviena numura.
-          </p>
-        ) : (
-          <ul className={styles.grid}>
-            {issues.map((issue) => (
-              <IssueCard key={issue.slug} issue={issue} />
-            ))}
-          </ul>
-        )}
-      </main>
-    </>
+      {issues.length === 0 ? (
+        <p
+          style={{
+            textAlign: "center",
+            fontStyle: "italic",
+            color: "var(--ink-soft)",
+            padding: "4rem 1rem",
+          }}
+        >
+          vēl nav neviena numura.
+        </p>
+      ) : (
+        <ul className={styles.grid}>
+          {issues.map((issue) => (
+            <IssueCard key={issue.slug} issue={issue} />
+          ))}
+        </ul>
+      )}
+    </main>
   );
 }

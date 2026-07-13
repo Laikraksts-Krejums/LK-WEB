@@ -7,9 +7,6 @@ export const DEV_ISSUE: Issue = {
   title: "Nenoliec karoti",
   slug: "i",
   publishedAt: "2025-01-01",
-  heroUrl: "/hero-placeholder.jpg",
-  heroWidth: 905,
-  heroHeight: 1280,
   coverUrl: "/dev-pages/page-01.jpg",
   pages: Array.from({ length: PAGE_COUNT }, (_, i) => ({
     src: `/dev-pages/page-${String(i + 1).padStart(2, "0")}.jpg`,
