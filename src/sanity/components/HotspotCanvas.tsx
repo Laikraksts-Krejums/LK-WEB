@@ -79,21 +79,18 @@ export function HotspotCanvas({
       const state = drawRef.current;
       drawRef.current = null;
       (e.currentTarget as Element).releasePointerCapture(e.pointerId);
-      if (!state?.drawing) {
-        setDraft(null);
-        return;
-      }
-      setDraft((current) => {
-        if (current) {
-          const width = 100 - current.left - current.right;
-          if (width >= MIN_SIZE_PCT && current.height >= MIN_SIZE_PCT) {
-            onCreate(current);
-          }
+      // Read `draft` directly rather than inside the setDraft() updater below:
+      // React (Strict Mode) may invoke updater functions twice to surface
+      // impure updates, which would fire onCreate — a real patch — twice.
+      if (state?.drawing && draft) {
+        const width = 100 - draft.left - draft.right;
+        if (width >= MIN_SIZE_PCT && draft.height >= MIN_SIZE_PCT) {
+          onCreate(draft);
         }
-        return null;
-      });
+      }
+      setDraft(null);
     },
-    [onCreate],
+    [draft, onCreate],
   );
 
   return (
