@@ -1,7 +1,6 @@
 import { SITE_DEFAULTS } from "./site";
 import type { Issue } from "./types";
 
-/** Stand-in issue so the reader works with no Sanity project and no R2 bucket. */
 const PAGE_COUNT = 18;
 
 export const DEV_ISSUE: Issue = {
@@ -10,6 +9,8 @@ export const DEV_ISSUE: Issue = {
   slug: "i",
   publishedAt: "2025-01-01",
   heroUrl: "/hero-placeholder.jpg",
+  heroWidth: 905,
+  heroHeight: 1280,
   coverUrl: "/dev-pages/page-01.jpg",
   pages: Array.from({ length: PAGE_COUNT }, (_, i) => ({
     src: `/dev-pages/page-${String(i + 1).padStart(2, "0")}.jpg`,

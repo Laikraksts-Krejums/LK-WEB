@@ -48,7 +48,11 @@ export function PageList({
               width={page.width}
               height={page.height}
               decoding="async"
-              loading={i < 2 ? "eager" : "lazy"}
+              // Only the cover loads with the document; useBackgroundDecode
+              // promotes the rest to eager once the page is done loading. The
+              // cover yields to the hero, which is the LCP element above it.
+              loading={i === 0 ? "eager" : "lazy"}
+              fetchPriority={i === 0 ? "low" : undefined}
               draggable={false}
             />
             {pageHotspots.map((spot, j) => (

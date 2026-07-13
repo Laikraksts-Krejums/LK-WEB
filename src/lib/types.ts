@@ -25,6 +25,8 @@ export type Issue = {
   blurb?: string;
   coverUrl?: string;
   heroUrl?: string;
+  heroWidth?: number;
+  heroHeight?: number;
   pages: ReaderPage[];
   hotspots: ReaderHotspot[];
 };

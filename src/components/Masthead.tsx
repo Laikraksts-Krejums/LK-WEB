@@ -8,11 +8,11 @@ export function Masthead() {
       <Link href="/" aria-label="krējums." className={styles.logoLink}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/logo.png"
+          src="/logo.webp"
           alt="krējums."
           className={styles.logo}
-          width={1200}
-          height={1161}
+          width={282}
+          height={273}
         />
       </Link>
       <a
@@ -22,11 +22,11 @@ export function Masthead() {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/slogan.png"
+          src="/slogan.webp"
           alt="nenoliec karoti."
           className={styles.slogan}
-          width={1000}
-          height={260}
+          width={563}
+          height={244}
         />
       </a>
     </header>

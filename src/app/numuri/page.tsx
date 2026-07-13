@@ -21,26 +21,28 @@ export default async function ArchivePage() {
   return (
     <>
       <Masthead />
-      <Tagline>visi numuri</Tagline>
+      <main>
+        <Tagline>visi numuri</Tagline>
 
-      {issues.length === 0 ? (
-        <p
-          style={{
-            textAlign: "center",
-            fontStyle: "italic",
-            color: "var(--ink-soft)",
-            padding: "4rem 1rem",
-          }}
-        >
-          vēl nav neviena numura.
-        </p>
-      ) : (
-        <ul className={styles.grid}>
-          {issues.map((issue) => (
-            <IssueCard key={issue.slug} issue={issue} />
-          ))}
-        </ul>
-      )}
+        {issues.length === 0 ? (
+          <p
+            style={{
+              textAlign: "center",
+              fontStyle: "italic",
+              color: "var(--ink-soft)",
+              padding: "4rem 1rem",
+            }}
+          >
+            vēl nav neviena numura.
+          </p>
+        ) : (
+          <ul className={styles.grid}>
+            {issues.map((issue) => (
+              <IssueCard key={issue.slug} issue={issue} />
+            ))}
+          </ul>
+        )}
+      </main>
     </>
   );
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import styles from "./layout.module.css";
 import { getSiteSettings } from "@/lib/issues";
+import { R2_PUBLIC_ORIGIN } from "@/lib/r2";
 import { SITE_DEFAULTS, SITE_NAME, SITE_URL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -51,6 +52,14 @@ export default async function RootLayout({
 
   return (
     <html lang="lv">
+      <head>
+        {/* Every image on the page comes from one of these two. Opening the
+            connections early takes the DNS + TLS handshake off the LCP path. */}
+        <link rel="preconnect" href="https://cdn.sanity.io" />
+        {R2_PUBLIC_ORIGIN && (
+          <link rel="preconnect" href={R2_PUBLIC_ORIGIN} />
+        )}
+      </head>
       <body>
         <script
           type="application/ld+json"

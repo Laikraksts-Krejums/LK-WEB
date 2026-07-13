@@ -128,15 +128,13 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
 
   return (
     <div className={styles.reader} id="reader" ref={readerRef}>
-      {!ready && <div className={styles.loading}>ielādē numuru</div>}
-
+      {/* The spread stays in flow while loading. Its pages carry an
+          aspect-ratio and a white background, so the box is the right size
+          from the first paint and the cover drops into it without moving
+          anything. Hiding it until `ready` cost ~0.6 CLS. */}
       <div
         ref={spreadRef}
-        className={[
-          styles.spread,
-          isSingle ? styles.single : "",
-          ready ? "" : styles.hidden,
-        ]
+        className={[styles.spread, isSingle ? styles.single : ""]
           .filter(Boolean)
           .join(" ")}
       >
@@ -146,6 +144,7 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
           visible={view.pages}
           registerImg={registerImg}
         />
+        {!ready && <div className={styles.loading}>ielādē numuru</div>}
       </div>
 
       <ReaderControls

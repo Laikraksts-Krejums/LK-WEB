@@ -43,8 +43,10 @@ export default async function IssuePage({ params }: Props) {
   return (
     <>
       <Masthead />
-      <Tagline>{issue.blurb ?? issue.title}</Tagline>
-      <Reader pages={issue.pages} hotspots={issue.hotspots} />
+      <main>
+        <Tagline>{issue.blurb ?? issue.title}</Tagline>
+        <Reader pages={issue.pages} hotspots={issue.hotspots} />
+      </main>
     </>
   );
 }

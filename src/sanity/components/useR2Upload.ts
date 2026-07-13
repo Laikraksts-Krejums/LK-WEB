@@ -18,6 +18,28 @@ export type UploadProgress = {
   error?: string;
 };
 
+/**
+ * "name (3).jpg" → stem "name", copy 3. A save with no suffix is copy 0, which
+ * is what puts WhatsApp's first image ("... 12.09.51.jpeg") ahead of its
+ * "... 12.09.51 (1).jpeg" and not, as a plain string sort does, behind all ten.
+ */
+function orderKey(filename: string): [string, number] {
+  const dot = filename.lastIndexOf(".");
+  const stem = dot > 0 ? filename.slice(0, dot) : filename;
+  const copy = stem.match(/^(.*?) \((\d+)\)$/);
+  return copy ? [copy[1], Number(copy[2])] : [stem, 0];
+}
+
+/** Best-effort only — filenames may carry no page order at all, so the Studio's
+ *  drag-to-reorder stays the source of truth. */
+function byReadingOrder(a: File, b: File): number {
+  const [aStem, aCopy] = orderKey(a.name);
+  const [bStem, bCopy] = orderKey(b.name);
+  return (
+    aStem.localeCompare(bStem, undefined, { numeric: true }) || aCopy - bCopy
+  );
+}
+
 /** Measured before upload so the reader can reserve space. */
 async function measure(file: File): Promise<{ width: number; height: number }> {
   try {
@@ -37,10 +59,7 @@ export function useR2Upload(issueId: string) {
 
   const uploadFiles = useCallback(
     async (files: File[]): Promise<UploadedPage[]> => {
-      // page-01…page-18 should land in reading order, not the OS's order.
-      const ordered = [...files].sort((a, b) =>
-        a.name.localeCompare(b.name, undefined, { numeric: true }),
-      );
+      const ordered = [...files].sort(byReadingOrder);
 
       const token = client.config().token;
       if (!token) {
