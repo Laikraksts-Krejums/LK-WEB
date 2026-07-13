@@ -132,12 +132,18 @@
   align-items: center;
   gap: clamp(0.5rem, 2vw, 1rem);
   margin-top: 1.75rem;
+  padding: 0.75rem 0;
   flex-wrap: wrap;
   font-family: var(--font-mono);
+  background: var(--cream);
 
-  /* A transformed element paints above in-flow siblings, so a zoomed spread
-     would cover these buttons — including the one that zooms back out. */
-  position: relative;
+  /* Sticky rather than a normal-flow sibling: otherwise switching to a
+     double-page spread grows the page box taller (wider pages, fixed
+     aspect-ratio) and shoves these buttons further down the viewport.
+     Also covers a zoomed spread, which would otherwise paint above an
+     in-flow sibling — including the button that zooms back out. */
+  position: sticky;
+  bottom: 0;
   z-index: 10;
 }
 
