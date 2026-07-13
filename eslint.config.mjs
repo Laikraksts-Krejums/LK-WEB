@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Build output. Gitignored, so CI never sees it, but a local `npm run lint`
+    // after a deploy build otherwise reports thousands of findings in bundles.
+    ".open-next/**",
+    ".wrangler/**",
   ]),
 ]);
 

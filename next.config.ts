@@ -9,6 +9,17 @@ const nextConfig: NextConfig = {
   // Do NOT add a `webpack` key: Next 16 fails the Turbopack build if one exists,
   // and the OpenNext adapter builds with Turbopack.
 
+  async headers() {
+    if (process.env.NEXT_PUBLIC_ALLOW_INDEXING === "true") return [];
+    // robots.txt is a request a crawler may ignore; this header is not.
+    return [
+      {
+        source: "/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
+  },
+
   async redirects() {
     // The editor lived at /studio (Sanity's convention) before it moved.
     // Two rules, not one: with `:path*` the bare /studio matches zero segments

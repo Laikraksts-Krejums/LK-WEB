@@ -19,6 +19,3 @@ export const dataset = required(
 
 export const apiVersion =
   process.env.NEXT_PUBLIC_SANITY_API_VERSION ?? "2024-10-01";
-
-/** Server-only. Absent in the browser, which is the point. */
-export const readToken = process.env.SANITY_API_READ_TOKEN;

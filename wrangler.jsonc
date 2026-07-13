@@ -42,5 +42,50 @@
       "tag": "v1",
       "new_sqlite_classes": ["DOQueueHandler"]
     }
-  ]
+  ],
+
+  // The top level is production. Named environments do NOT inherit `vars`,
+  // `r2_buckets`, `durable_objects` or `assets`, so staging repeats them.
+  // `routes` IS inherited — which is why the production route, when it lands
+  // here at cutover, must not be the only one declared.
+  "env": {
+    "staging": {
+      "name": "krejums-staging",
+      "workers_dev": false,
+      "routes": [
+        {
+          "pattern": "staging.laikrakstskrejums.lv",
+          "custom_domain": true
+        }
+      ],
+
+      "assets": {
+        "directory": ".open-next/assets",
+        "binding": "ASSETS"
+      },
+
+      "r2_buckets": [
+        // Same images bucket as production on purpose: R2 keys are namespaced by
+        // issue _id, so a separate bucket would render zero pages.
+        {
+          "binding": "PAGES_BUCKET",
+          "bucket_name": "krejums-pages"
+        },
+        // The ISR cache is the one thing that must not be shared.
+        {
+          "binding": "NEXT_INC_CACHE_R2_BUCKET",
+          "bucket_name": "krejums-next-cache-staging"
+        }
+      ],
+
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "NEXT_CACHE_DO_QUEUE",
+            "class_name": "DOQueueHandler"
+          }
+        ]
+      }
+    }
+  }
 }
