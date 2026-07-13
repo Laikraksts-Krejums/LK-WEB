@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import styles from "./layout.module.css";
-import { getSiteSettings } from "@/lib/issues";
 import { R2_PUBLIC_ORIGIN } from "@/lib/r2";
 import { SITE_DEFAULTS, SITE_NAME, SITE_URL } from "@/lib/site";
 
@@ -28,28 +26,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const settings = await getSiteSettings();
-
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Periodical",
-    name: "krējums",
-    alternateName: "Laikraksts Krējums",
-    inLanguage: "lv",
-    url: SITE_URL,
-    description: settings.metaDescription ?? settings.tagline,
-    publisher: {
-      "@type": "Organization",
-      name: "krējums",
-      sameAs: [settings.instagramUrl, settings.facebookUrl].filter(Boolean),
-    },
-  };
-
   return (
     <html lang="lv">
       <head>
@@ -60,13 +41,7 @@ export default async function RootLayout({
           <link rel="preconnect" href={R2_PUBLIC_ORIGIN} />
         )}
       </head>
-      <body>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        <div className={styles.shell}>{children}</div>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
