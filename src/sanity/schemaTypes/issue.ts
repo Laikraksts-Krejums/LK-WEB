@@ -1,5 +1,6 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 import { R2PagesInput } from "../components/R2PagesInput";
+import { HotspotsInput } from "../components/HotspotsInput";
 
 export const issue = defineType({
   name: "issue",
@@ -87,6 +88,7 @@ export const issue = defineType({
       type: "array",
       group: "links",
       of: [defineArrayMember({ type: "hotspot" })],
+      components: { input: HotspotsInput },
     }),
   ],
   orderings: [

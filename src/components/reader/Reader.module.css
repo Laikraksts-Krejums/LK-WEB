@@ -51,6 +51,13 @@
   aspect-ratio: 1 / 1.414;
   flex: 1 1 0;
   min-width: 0;
+  /* Flex items get an automatic min-height from their content by default. For
+     an <img> child, that's driven by its own width/height attributes (the
+     real scan dimensions) even though `.page img` forces width/height: 100%
+     — so a page whose source image is much taller-for-its-width than 1:1.414
+     could still stretch this box past the aspect-ratio height and shove the
+     controls below it down. Zero it so aspect-ratio always wins. */
+  min-height: 0;
   max-width: 50%;
   display: none;
 }
