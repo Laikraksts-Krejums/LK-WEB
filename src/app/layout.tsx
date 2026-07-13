@@ -1,30 +1,36 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { getSiteSettings } from "@/lib/issues";
 import { R2_PUBLIC_ORIGIN } from "@/lib/r2";
 import { SITE_DEFAULTS, SITE_NAME, SITE_URL } from "@/lib/site";
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: SITE_DEFAULTS.title,
-  description: SITE_DEFAULTS.tagline,
-  keywords: [...SITE_DEFAULTS.keywords],
-  alternates: { canonical: "/" },
-  openGraph: {
-    type: "website",
-    siteName: SITE_NAME,
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+
+  return {
+    metadataBase: new URL(SITE_URL),
     title: SITE_DEFAULTS.title,
-    description: SITE_DEFAULTS.tagline,
-    locale: "lv_LV",
-    url: SITE_URL,
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: SITE_DEFAULTS.title,
-    description: SITE_DEFAULTS.tagline,
-    images: ["/og-image.jpg"],
-  },
-};
+    description: settings.tagline,
+    keywords: settings.keywords ?? [...SITE_DEFAULTS.keywords],
+    alternates: { canonical: "/" },
+    icons: settings.faviconUrl ? { icon: settings.faviconUrl } : undefined,
+    openGraph: {
+      type: "website",
+      siteName: SITE_NAME,
+      title: SITE_DEFAULTS.title,
+      description: settings.tagline,
+      locale: "lv_LV",
+      url: SITE_URL,
+      images: [{ url: "/og-image.jpg", width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: SITE_DEFAULTS.title,
+      description: settings.tagline,
+      images: ["/og-image.jpg"],
+    },
+  };
+}
 
 export default function RootLayout({
   children,

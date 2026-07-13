@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 
 // Imports nothing from `sanity` on purpose — see ./[[...tool]]/page.tsx.
 export const metadata: Metadata = {
-  title: "krējums — redakcija",
+  title: "krējums - redakcija",
   robots: { index: false, follow: false },
 };
 

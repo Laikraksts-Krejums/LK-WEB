@@ -20,7 +20,7 @@ export const ISSUE_BY_SLUG_QUERY = defineQuery(`
   *[_type == "issue" && slug.current == $slug][0]{ ${ISSUE_FIELDS} }
 `);
 
-/** Archive listing — no page images, they are not needed for a card. */
+/** Archive listing: no page images, they are not needed for a card. */
 export const ALL_ISSUES_QUERY = defineQuery(`
   *[_type == "issue"] | order(number desc){
     number,
@@ -39,11 +39,16 @@ export const ISSUE_SLUGS_QUERY = defineQuery(`
 export const SITE_SETTINGS_QUERY = defineQuery(`
   *[_type == "siteSettings"][0]{
     tagline,
+    keywords,
+    ogImage,
+    favicon
+  }
+`);
+
+export const SOCIAL_LINKS_QUERY = defineQuery(`
+  *[_type == "socialLinks"][0]{
     instagramUrl,
     facebookUrl,
-    email,
-    metaDescription,
-    keywords,
-    ogImage
+    email
   }
 `);

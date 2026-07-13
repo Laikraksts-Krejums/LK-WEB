@@ -6,10 +6,11 @@ import {
   ISSUE_BY_SLUG_QUERY,
   LATEST_ISSUE_QUERY,
   SITE_SETTINGS_QUERY,
+  SOCIAL_LINKS_QUERY,
 } from "@/sanity/queries";
 import { DEV_ISSUE } from "./fixtures";
 import { r2PublicUrl } from "./r2";
-import { SITE_DEFAULTS } from "./site";
+import { SITE_DEFAULTS, SOCIAL_DEFAULTS } from "./site";
 import type { Issue, ReaderHotspot } from "./types";
 
 /** Honoured on Cloudflare by the incremental cache + queue in open-next.config.ts. */
@@ -18,12 +19,12 @@ const cacheOpts = { next: { revalidate: REVALIDATE_SECONDS } };
 
 export type SiteSettings = {
   tagline: string;
+  keywords?: string[];
+  ogImageUrl?: string;
+  faviconUrl?: string;
   instagramUrl?: string;
   facebookUrl?: string;
   email?: string;
-  metaDescription?: string;
-  keywords?: string[];
-  ogImageUrl?: string;
 };
 
 type SanityImageRef = { asset?: { _ref?: string } };
@@ -49,18 +50,19 @@ type SanityIssue = {
 };
 
 export async function getSiteSettings(): Promise<SiteSettings> {
-  const doc = await client
-    .fetch(SITE_SETTINGS_QUERY, {}, cacheOpts)
-    .catch(() => null);
+  const [doc, social] = await Promise.all([
+    client.fetch(SITE_SETTINGS_QUERY, {}, cacheOpts).catch(() => null),
+    client.fetch(SOCIAL_LINKS_QUERY, {}, cacheOpts).catch(() => null),
+  ]);
 
   return {
     tagline: doc?.tagline ?? SITE_DEFAULTS.tagline,
-    instagramUrl: doc?.instagramUrl ?? SITE_DEFAULTS.instagramUrl,
-    facebookUrl: doc?.facebookUrl ?? undefined,
-    email: doc?.email ?? SITE_DEFAULTS.email,
-    metaDescription: doc?.metaDescription ?? SITE_DEFAULTS.tagline,
     keywords: doc?.keywords ?? [...SITE_DEFAULTS.keywords],
     ogImageUrl: doc?.ogImage ? urlForImage(doc.ogImage, 1200) : "/og-image.jpg",
+    faviconUrl: doc?.favicon ? urlForImage(doc.favicon, 512) : undefined,
+    instagramUrl: social?.instagramUrl ?? SOCIAL_DEFAULTS.instagramUrl,
+    facebookUrl: social?.facebookUrl ?? undefined,
+    email: social?.email ?? SOCIAL_DEFAULTS.email,
   };
 }
 

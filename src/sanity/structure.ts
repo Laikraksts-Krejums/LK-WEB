@@ -1,6 +1,6 @@
 import type { StructureResolver } from "sanity/structure";
 
-/** Site Settings is a singleton, not a list you can create more of. */
+/** Site Settings and Social links are singletons, not lists you can create more of. */
 export const structure: StructureResolver = (S) =>
   S.list()
     .title("krējums")
@@ -14,5 +14,11 @@ export const structure: StructureResolver = (S) =>
         .id("siteSettings")
         .child(
           S.document().schemaType("siteSettings").documentId("siteSettings"),
+        ),
+      S.listItem()
+        .title("Social links")
+        .id("socialLinks")
+        .child(
+          S.document().schemaType("socialLinks").documentId("socialLinks"),
         ),
     ]);

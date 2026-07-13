@@ -64,7 +64,7 @@ export function useR2Upload(issueId: string) {
       const token = client.config().token;
       if (!token) {
         throw new Error(
-          "No Sanity access token — reload the Studio and sign in again.",
+          "No Sanity access token. Reload the Studio and sign in again.",
         );
       }
 

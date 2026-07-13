@@ -16,7 +16,7 @@ export default async function SiteLayout({
     alternateName: "Laikraksts Krējums",
     inLanguage: "lv",
     url: SITE_URL,
-    description: settings.metaDescription ?? settings.tagline,
+    description: settings.tagline,
     publisher: {
       "@type": "Organization",
       name: "krējums",

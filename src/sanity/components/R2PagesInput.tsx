@@ -74,9 +74,9 @@ export function R2PagesInput(props: ArrayOfObjectsInputProps) {
           <Text size={1} muted>
             {busy
               ? `Uploading ${progress.done + 1}/${progress.total}${
-                  progress.current ? ` — ${progress.current}` : ""
+                  progress.current ? ` (${progress.current})` : ""
                 }`
-              : "Drag page images here — they are ordered by filename"}
+              : "Drag page images here, ordered by filename"}
           </Text>
           <Flex justify="center">
             <Button

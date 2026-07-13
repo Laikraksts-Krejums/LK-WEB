@@ -54,7 +54,7 @@ export const issue = defineType({
       name: "coverImage",
       title: "Cover image",
       description:
-        "Shown on the issue archive page, and as the homepage poster when this is the newest issue. Leave empty and the homepage renders with no poster — this is how you take the poster down.",
+        "Shown on the issue archive page, and as the homepage poster when this is the newest issue. Leave empty and the homepage renders with no poster: this is how you take the poster down.",
       type: "image",
       group: "content",
       options: { hotspot: true },
@@ -64,7 +64,7 @@ export const issue = defineType({
       name: "pages",
       title: "Pages",
       description:
-        "Drag the page images here. The order in this list is the order in the magazine — drag rows to reorder.",
+        "Drag the page images here. The order in this list is the order in the magazine: drag rows to reorder.",
       type: "array",
       group: "pages",
       of: [defineArrayMember({ type: "r2Image" })],
@@ -83,7 +83,7 @@ export const issue = defineType({
       name: "hotspots",
       title: "Page links",
       description:
-        "Invisible clickable areas over printed text — e.g. the Instagram handle and email on the back cover.",
+        "Invisible clickable areas over printed text, e.g. the Instagram handle and email on the back cover.",
       type: "array",
       group: "links",
       of: [defineArrayMember({ type: "hotspot" })],
