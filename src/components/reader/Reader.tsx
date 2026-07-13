@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { buildPageNumbering } from "@/lib/pageLayout";
 import type { ReaderHotspot, ReaderPage } from "@/lib/types";
 import { PageList } from "./PageList";
 import { ReaderControls } from "./ReaderControls";
@@ -18,12 +19,37 @@ type ReaderProps = {
 /**
  * React and useZoom must never write the same DOM property on the same node:
  *
- *   .reader   React owns a STATIC className; useZoom owns .isZoomed/.isPanning.
- *             A dynamic className here would make React wipe .isZoomed.
+ *   .reader   React owns a STATIC className and the --stage-ar custom property;
+ *             useZoom owns .isZoomed/.isPanning. A dynamic className here would
+ *             make React wipe .isZoomed. The `style` prop is safe: useZoom only
+ *             touches this node's classList.
  *   .spread   React owns className; useZoom owns style.transform. Never pass a
- *             `style` prop to it.
- *   .page     React owns className; nothing imperative touches it.
+ *             `style` prop to it — --stage-ar reaches it by inheritance instead.
+ *   .page     React owns className and --page-ar; nothing imperative touches it.
  */
+
+/**
+ * The ratio of the stage, which is two printed pages wide. Taken from the issue's
+ * own scans rather than a hardcoded A4, so a normal opening fills the stage
+ * exactly instead of floating inside it. Median, so one odd scan cannot skew the
+ * whole issue; clamped, so a garbage dimension cannot produce an absurd box. It
+ * comes from data present at SSR, so the stage is right on the first paint.
+ */
+function stageRatio(pages: ReaderPage[]): number {
+  const units = pages
+    .filter((page) => page.width > 0 && page.height > 0)
+    .map((page) => {
+      const ratio = page.width / page.height;
+      return page.isSpread ? ratio / 2 : ratio;
+    })
+    .sort((a, b) => a - b);
+
+  if (units.length === 0) return 2 / 1.414;
+
+  const unit = units[Math.floor(units.length / 2)];
+  return Math.min(Math.max(2 * unit, 1), 2.4);
+}
+
 export function Reader({ pages, hotspots = [] }: ReaderProps) {
   const readerRef = useRef<HTMLDivElement>(null);
   const spreadRef = useRef<HTMLDivElement>(null);
@@ -33,10 +59,15 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
   const [current, setCurrent] = useState(0);
   const [ready, setReady] = useState(false);
 
-  const views = useMemo(
-    () => buildViews(pages.length, isMobile),
-    [pages.length, isMobile],
-  );
+  const spreads = useMemo(() => pages.map((page) => page.isSpread), [pages]);
+
+  const views = useMemo(() => buildViews(spreads, isMobile), [spreads, isMobile]);
+
+  // Printed page numbers, for the label and the total ONLY. Hotspots stay keyed
+  // to image indices — see lib/pageLayout.ts.
+  const numbering = useMemo(() => buildPageNumbering(spreads), [spreads]);
+
+  const stageAr = useMemo(() => stageRatio(pages), [pages]);
 
   const registerImg = useCallback((index: number, el: HTMLImageElement | null) => {
     imgRefs.current[index] = el;
@@ -107,11 +138,11 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
 
     resetZoom();
     setCurrent((prev) => {
-      const previousViews = buildViews(pages.length, !isMobile);
+      const previousViews = buildViews(spreads, !isMobile);
       const anchorPage = previousViews[prev]?.pages[0] ?? 0;
-      return findViewIndex(buildViews(pages.length, isMobile), anchorPage);
+      return findViewIndex(buildViews(spreads, isMobile), anchorPage);
     });
-  }, [isMobile, pages.length, resetZoom]);
+  }, [isMobile, spreads, resetZoom]);
 
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
@@ -124,10 +155,17 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
   const view = views[current];
   if (!view) return null;
 
-  const isSingle = view.pages.length === 1;
+  // A lone SPREAD image is not "single": it is a whole opening and must fill the
+  // stage, not be narrowed to a cover's width.
+  const isSingle = view.pages.length === 1 && !pages[view.pages[0]]?.isSpread;
 
   return (
-    <div className={styles.reader} id="reader" ref={readerRef}>
+    <div
+      className={styles.reader}
+      id="reader"
+      ref={readerRef}
+      style={{ "--stage-ar": stageAr.toFixed(4) } as React.CSSProperties}
+    >
       {/* The spread stays in flow while loading. Its pages carry an
           aspect-ratio and a white background, so the box is the right size
           from the first paint and the cover drops into it without moving
@@ -148,8 +186,8 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
       </div>
 
       <ReaderControls
-        label={pageRangeLabel(view)}
-        totalPages={pages.length}
+        label={pageRangeLabel(view, numbering)}
+        totalPages={numbering.total}
         canPrev={current > 0}
         canNext={current < views.length - 1}
         isZoomed={isZoomed}

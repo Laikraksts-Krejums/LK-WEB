@@ -9,10 +9,17 @@ import {
   type ArrayOfObjectsInputProps,
 } from "sanity";
 import { randomKey } from "@sanity/util/content";
+import { buildPageNumbering, isSpreadImage } from "@/lib/pageLayout";
 import { HotspotCanvas, type CanvasHotspot } from "./HotspotCanvas";
 import type { HotspotBoxValue } from "./hotspotMath";
 
-type PageValue = { _key: string; key: string; width?: number; height?: number };
+type PageValue = {
+  _key: string;
+  key: string;
+  width?: number;
+  height?: number;
+  layout?: string;
+};
 
 type HotspotItem = {
   _key: string;
@@ -46,7 +53,10 @@ function hasPlacement(item: HotspotItem): item is HotspotItem & CanvasHotspot {
  */
 export function HotspotsInput(props: ArrayOfObjectsInputProps) {
   const { value, onChange, renderDefault } = props;
-  const pages = (useFormValue(["pages"]) as PageValue[] | undefined) ?? [];
+  const pagesValue = useFormValue(["pages"]) as PageValue[] | undefined;
+  // The `?? []` would otherwise mint a new array every render and re-run every
+  // memo below it.
+  const pages = useMemo(() => pagesValue ?? [], [pagesValue]);
   const items = useMemo(() => (value as HotspotItem[] | undefined) ?? [], [value]);
 
   const [currentPage, setCurrentPage] = useState(() => {
@@ -55,6 +65,23 @@ export function HotspotsInput(props: ArrayOfObjectsInputProps) {
   });
 
   const page = pages[currentPage - 1];
+
+  // The paginator addresses IMAGES (so does hotspot.pageNumber), but an editor
+  // holding the printed magazine counts printed pages, and a spread makes the
+  // two diverge. Show both so the numbers can be reconciled here.
+  const numbering = useMemo(
+    () =>
+      buildPageNumbering(
+        pages.map((p) => isSpreadImage(p.layout, p.width, p.height)),
+      ),
+    [pages],
+  );
+  const printedLabel = (() => {
+    const first = numbering.first[currentPage - 1];
+    const last = numbering.last[currentPage - 1];
+    if (!first) return null;
+    return first === last ? `printed page ${first}` : `printed pages ${first}–${last}`;
+  })();
 
   const pageHotspots = useMemo(
     () =>
@@ -122,21 +149,30 @@ export function HotspotsInput(props: ArrayOfObjectsInputProps) {
                 onClick={() => goToPage(currentPage - 1)}
               />
               <Box flex={1}>
-                <Flex align="center" gap={2} justify="center">
-                  <Text size={1} muted>
-                    Page
-                  </Text>
-                  <Box style={{ width: 64 }}>
-                    <TextInput
-                      type="number"
-                      value={String(currentPage)}
-                      onChange={(e) => goToPage(Number(e.currentTarget.value))}
-                    />
-                  </Box>
-                  <Text size={1} muted>
-                    of {pages.length}
-                  </Text>
-                </Flex>
+                <Stack space={2}>
+                  <Flex align="center" gap={2} justify="center">
+                    <Text size={1} muted>
+                      Image
+                    </Text>
+                    <Box style={{ width: 64 }}>
+                      <TextInput
+                        type="number"
+                        value={String(currentPage)}
+                        onChange={(e) => goToPage(Number(e.currentTarget.value))}
+                      />
+                    </Box>
+                    <Text size={1} muted>
+                      of {pages.length}
+                    </Text>
+                  </Flex>
+                  {printedLabel && (
+                    <Flex justify="center">
+                      <Text size={0} muted>
+                        {printedLabel}
+                      </Text>
+                    </Flex>
+                  )}
+                </Stack>
               </Box>
               <Button
                 mode="ghost"

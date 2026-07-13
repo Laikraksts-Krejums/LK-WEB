@@ -24,7 +24,10 @@ export function PageList({
   registerImg,
 }: PageListProps) {
   const visibleSet = new Set(visible);
-  const isSpread = visible.length === 2;
+  // Two IMAGES side by side — distinct from page.isSpread, which is one image
+  // holding two printed pages. Only drives the gutter shadows: a spread scan
+  // already contains the real fold, so it never gets a synthetic one.
+  const isPair = visible.length === 2;
 
   return (
     <>
@@ -34,12 +37,23 @@ export function PageList({
 
         const classes = [styles.page];
         if (isVisible) classes.push(styles.isVisible);
-        if (isSpread && isVisible) {
+        if (isPair && isVisible) {
           classes.push(i === visible[0] ? styles.spineLeft : styles.spineRight);
         }
 
+        // The scan's own ratio. The CSS sizes .page from it, which is what keeps
+        // .page exactly the image's box — and the hotspots below are percentages
+        // of that box, so the equality is what lands them on the printed thing
+        // they point at. A string: React would append "px" to a bare number.
+        const ratio = page.height > 0 ? page.width / page.height : 1 / 1.414;
+
         return (
-          <div key={i} className={classes.join(" ")} data-page-index={i}>
+          <div
+            key={i}
+            className={classes.join(" ")}
+            data-page-index={i}
+            style={{ "--page-ar": ratio.toFixed(4) } as React.CSSProperties}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               ref={(el) => registerImg(i, el)}

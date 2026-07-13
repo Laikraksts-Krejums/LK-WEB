@@ -4,6 +4,13 @@ export type ReaderPage = {
   width: number;
   height: number;
   alt?: string;
+  /**
+   * A landscape scan holding both pages of one printed opening. Resolved on the
+   * server from the scan's dimensions and the editor's override (lib/pageLayout).
+   * It is still ONE image: hotspot percentages on it are percentages of the
+   * whole spread.
+   */
+  isSpread: boolean;
 };
 
 

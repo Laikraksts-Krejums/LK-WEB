@@ -65,7 +65,7 @@ export const issue = defineType({
       name: "pages",
       title: "Pages",
       description:
-        "Drag the page images here. The order in this list is the order in the magazine: drag rows to reorder.",
+        "Drag the page images here. The order in this list is the order in the magazine: drag rows to reorder. A landscape scan of a two-page spread is fine — upload it as one image and the reader shows it as a full opening.",
       type: "array",
       group: "pages",
       of: [defineArrayMember({ type: "r2Image" })],

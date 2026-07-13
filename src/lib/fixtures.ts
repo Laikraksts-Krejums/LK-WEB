@@ -13,6 +13,7 @@ export const DEV_ISSUE: Issue = {
     width: 1400,
     height: 1980,
     alt: `lapa ${i + 1}`,
+    isSpread: false,
   })),
   hotspots: [
     {

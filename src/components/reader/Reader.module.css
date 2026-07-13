@@ -11,16 +11,24 @@
   position: relative;
   display: flex;
   justify-content: center;
+
+  /* LOAD-BEARING, not cosmetic. Pages size themselves from their own
+     aspect-ratio with height:auto; the default `stretch` would force a definite
+     height on them, override that ratio, and stop .page from being the image's
+     box — which is exactly what the hotspot percentages are measured against. */
   align-items: center;
+
   gap: 0;
   filter: drop-shadow(0 1px 2px rgba(48, 48, 46, 0.08))
     drop-shadow(0 10px 30px rgba(48, 48, 46, 0.12))
     drop-shadow(0 40px 60px rgba(48, 48, 46, 0.08));
 
-  /* Reserves the height of a full two-page spread even in single-page mode
-     (narrower single page centers inside it), so switching between the two
-     never resizes this box and never shifts the controls below it. */
-  aspect-ratio: 2 / 1.414;
+  /* The stage. Reserves the height of a full two-page opening even in
+     single-page mode (a narrower page centers inside it), so switching between
+     the two never resizes this box and never shifts the controls below it.
+     --stage-ar is the issue's OWN two-pages-wide ratio, set by Reader from the
+     scans; the fallback is a pair of A4s. */
+  aspect-ratio: var(--stage-ar, 1.4144);
 
   transform-origin: center center;
   transition: transform 0.14s ease-out;
@@ -48,26 +56,52 @@
   position: relative; /* anchors the absolutely-positioned hotspots */
   background: #fff;
   overflow: hidden;
-  aspect-ratio: 1 / 1.414;
-  flex: 1 1 0;
-  min-width: 0;
-  /* Flex items get an automatic min-height from their content by default. For
-     an <img> child, that's driven by its own width/height attributes (the
-     real scan dimensions) even though `.page img` forces width/height: 100%
-     — so a page whose source image is much taller-for-its-width than 1:1.414
-     could still stretch this box past the aspect-ratio height and shove the
-     controls below it down. Zero it so aspect-ratio always wins. */
-  min-height: 0;
-  max-width: 50%;
   display: none;
+
+  /* The SCAN's own ratio (PageList sets --page-ar from the stored dimensions),
+     so this box is exactly the image's box. That equality is the contract the
+     hotspots rely on. Was a hardcoded 1/1.414 + object-fit:cover, which
+     center-cropped every scan whose ratio differed and sawed both outer halves
+     off a landscape two-page spread. */
+  aspect-ratio: var(--page-ar, 0.7072);
+
+  /* Height stays AUTO — always derived from the ratio, never definite. A
+     definite height would beat the ratio the moment anything capped the width
+     (.single below, or flex shrink), and the box would stop matching the image.
+     The width is the flex main size instead. */
+  height: auto;
+
+  /* Basis proportional to the ratio: two pages then shrink to widths in
+     proportion to their ratios, which lands them at the SAME height even when
+     the scans differ. A spread (~1.414) asks for ~141% and takes the whole
+     stage; two portraits ask ~71% each and settle at ~50% each. */
+  flex: 0 1 calc(var(--page-ar, 0.7072) * 100%);
+
+  /* The width at which this page's height equals the stage height. Capping the
+     WIDTH rather than the height is what keeps the box on-ratio: max-width
+     clamps the width and the aspect-ratio re-derives the height. A max-height
+     would clamp the height against an already-definite width and silently break
+     the ratio — the exact hotspot drift this whole model exists to prevent. */
+  max-width: calc(var(--page-ar, 0.7072) / var(--stage-ar, 1.4144) * 100%);
+
+  /* Flex items take an automatic minimum size from their content; zero it so
+     the caps above always win. */
+  min-width: 0;
+  min-height: 0;
 }
 .page.isVisible {
   display: block;
 }
 
+/* A lone SINGLE page: a cover, a back cover, or an odd page facing a spread.
+   Not a lone spread — that is a whole opening and fills the stage, so Reader
+   only sets .single when the view's one page is not a spread.
+
+   Deliberately sets no max-width: the ratio-aware cap on .page has to keep
+   applying, or on a short stage the height would be clamped instead and the
+   hotspots would drift. */
 .single .page.isVisible {
-  max-width: min(540px, 90vw);
-  flex: 0 1 auto;
+  flex-basis: auto; /* an explicit basis would otherwise beat the width below */
   width: min(540px, 90vw);
 }
 
@@ -75,7 +109,10 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  /* `contain`, never `cover`. The box already carries the scan's ratio, so this
+     is a no-op in the normal case — and a safe letterbox on white, rather than a
+     crop, if the stored dimensions are ever missing or stale. */
+  object-fit: contain;
 }
 
 /* Gutter fold on an open spread. v0 used :first-of-type, which never matched:
@@ -168,10 +205,18 @@
 }
 
 @media (max-width: 780px) {
-  /* Mobile always shows one page per view (views.ts: buildMobileViews),
-     so there's no double-page height to reserve for. */
+  /* Mobile always shows one IMAGE per view (views.ts: buildMobileViews) —
+     including a spread, which is shown whole and pinch-zoomed rather than split.
+     There is no double-page height to reserve, so the stage hugs the page. */
   .spread {
     aspect-ratio: auto;
+  }
+  /* With no reserved stage height there is nothing to fit inside, so the
+     ratio-aware cap has no meaning here — and left in place it would squash a
+     lone portrait page to half the column. `.single` still holds one to
+     min(540px, 90vw); a spread, being two pages wide, takes the full column. */
+  .page {
+    max-width: 100%;
   }
   .spineLeft,
   .spineRight {

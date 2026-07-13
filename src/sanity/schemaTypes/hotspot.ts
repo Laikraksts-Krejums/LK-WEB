@@ -12,9 +12,13 @@ export const hotspot = defineType({
   type: "object",
   fields: [
     defineField({
+      // Named for printed pages, but it has always addressed IMAGES — the
+      // position in the issue's Pages list. Renaming the field would be a data
+      // migration; the wording is what was wrong.
       name: "pageNumber",
-      title: "Page number",
-      description: "Which page this link sits on (1 = front cover).",
+      title: "Page image",
+      description:
+        "Which uploaded image this link sits on — its position in the Pages list (1 = the first image). A two-page spread is ONE image, so a link anywhere on it uses that image's number, not the printed page number.",
       type: "number",
       validation: (rule) => rule.required().integer().min(1),
     }),
@@ -97,7 +101,7 @@ export const hotspot = defineType({
   preview: {
     select: { label: "label", page: "pageNumber", target: "target" },
     prepare({ label, page, target }) {
-      return { title: label || target, subtitle: `page ${page}` };
+      return { title: label || target, subtitle: `image ${page}` };
     },
   },
 });

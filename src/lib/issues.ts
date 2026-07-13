@@ -9,6 +9,7 @@ import {
   SITE_SETTINGS_QUERY,
 } from "@/sanity/queries";
 import { DEV_ISSUE } from "./fixtures";
+import { isSpreadImage } from "./pageLayout";
 import { r2PublicUrl } from "./r2";
 import { SITE_DEFAULTS } from "./site";
 import type { Issue, ReaderHotspot } from "./types";
@@ -43,7 +44,13 @@ type SanityIssue = {
   publishedAt?: string;
   blurb?: string;
   coverImage?: SanityImageRef;
-  pages?: { key: string; width?: number; height?: number; alt?: string }[];
+  pages?: {
+    key: string;
+    width?: number;
+    height?: number;
+    alt?: string;
+    layout?: string;
+  }[];
   hotspots?: SanityHotspot[];
 };
 
@@ -89,12 +96,22 @@ function toIssue(doc: SanityIssue): Issue {
     publishedAt: doc.publishedAt,
     blurb: doc.blurb,
     coverUrl: doc.coverImage ? urlForImage(doc.coverImage, 800) : undefined,
-    pages: (doc.pages ?? []).map((page, i) => ({
-      src: r2PublicUrl(page.key),
-      width: page.width || 1400,
-      height: page.height || 1980,
-      alt: page.alt ?? `lapa ${i + 1}`,
-    })),
+    pages: (doc.pages ?? []).map((page, i) => {
+      // The raw dimensions, not the defaults below — so "unmeasured means single"
+      // is a decision rather than an accident of 1400 < 1980.
+      const isSpread = isSpreadImage(page.layout, page.width, page.height);
+
+      return {
+        src: r2PublicUrl(page.key),
+        // The fallback box has to match what we just decided the page IS: an
+        // unmeasured image an editor marked as a spread would otherwise get a
+        // portrait box and render letterboxed inside it.
+        width: page.width || (isSpread ? 2800 : 1400),
+        height: page.height || 1980,
+        alt: page.alt ?? `lapa ${i + 1}`,
+        isSpread,
+      };
+    }),
     hotspots: (doc.hotspots ?? [])
       .map(resolveHotspot)
       .filter((spot): spot is ReaderHotspot => spot !== null),
