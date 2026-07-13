@@ -14,6 +14,11 @@ export type CanvasHotspot = HotspotBoxValue & { _key: string; label?: string };
 
 const DRAW_THRESHOLD_PX = 6;
 
+/* The image is capped at this height and the box that holds it is fixed to it,
+   so a landscape page and a portrait one occupy the same vertical space and
+   paging between them never moves the controls below the canvas. */
+const CANVAS_HEIGHT = "70vh";
+
 type DrawState = {
   startClientX: number;
   startClientY: number;
@@ -94,7 +99,16 @@ export function HotspotCanvas({
   );
 
   return (
-    <div style={{ display: "flex", justifyContent: "center" }}>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        // `center`, not the default `stretch`: the container must keep hugging
+        // the image for its bounding rect to stay a valid coordinate space.
+        alignItems: "center",
+        height: CANVAS_HEIGHT,
+      }}
+    >
       <div
         ref={containerRef}
         onPointerDown={handleBackgroundPointerDown}
@@ -121,7 +135,7 @@ export function HotspotCanvas({
             width: "auto",
             height: "auto",
             maxWidth: "100%",
-            maxHeight: "70vh",
+            maxHeight: CANVAS_HEIGHT,
             pointerEvents: "none",
           }}
         />
