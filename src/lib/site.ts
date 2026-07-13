@@ -1,5 +1,5 @@
 // Anything an editor should be able to change without a deploy lives in the
-// Sanity `siteSettings` / `socialLinks` singletons, not here.
+// Sanity `siteSettings` singleton (or the `siteLink` list), not here.
 
 export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://laikrakstskrejums.lv";
@@ -24,10 +24,4 @@ export const SITE_DEFAULTS = {
     "krejums magazine",
     "nenoliec karoti",
   ],
-} as const;
-
-/** Fallbacks used until socialLinks exists in Sanity. */
-export const SOCIAL_DEFAULTS = {
-  instagramUrl: "https://www.instagram.com/laikrakstskrejums/",
-  email: "laikraksts.krejums@gmail.com",
 } as const;

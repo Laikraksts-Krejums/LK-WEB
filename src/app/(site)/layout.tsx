@@ -1,5 +1,5 @@
 import styles from "../layout.module.css";
-import { getSiteSettings } from "@/lib/issues";
+import { getSiteLinkUrls, getSiteSettings } from "@/lib/issues";
 import { SITE_URL } from "@/lib/site";
 
 export default async function SiteLayout({
@@ -7,7 +7,10 @@ export default async function SiteLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const settings = await getSiteSettings();
+  const [settings, linkUrls] = await Promise.all([
+    getSiteSettings(),
+    getSiteLinkUrls(),
+  ]);
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -20,7 +23,9 @@ export default async function SiteLayout({
     publisher: {
       "@type": "Organization",
       name: "krējums",
-      sameAs: [settings.instagramUrl, settings.facebookUrl].filter(Boolean),
+      // Only http(s) links (a saved link can be a mailto: address, which
+      // is not a valid sameAs target).
+      sameAs: linkUrls.filter((url) => url.startsWith("http")),
     },
   };
 

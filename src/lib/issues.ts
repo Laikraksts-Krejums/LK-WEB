@@ -5,12 +5,12 @@ import {
   ALL_ISSUES_QUERY,
   ISSUE_BY_SLUG_QUERY,
   LATEST_ISSUE_QUERY,
+  SITE_LINK_URLS_QUERY,
   SITE_SETTINGS_QUERY,
-  SOCIAL_LINKS_QUERY,
 } from "@/sanity/queries";
 import { DEV_ISSUE } from "./fixtures";
 import { r2PublicUrl } from "./r2";
-import { SITE_DEFAULTS, SOCIAL_DEFAULTS } from "./site";
+import { SITE_DEFAULTS } from "./site";
 import type { Issue, ReaderHotspot } from "./types";
 
 /** Honoured on Cloudflare by the incremental cache + queue in open-next.config.ts. */
@@ -22,15 +22,13 @@ export type SiteSettings = {
   keywords?: string[];
   ogImageUrl?: string;
   faviconUrl?: string;
-  instagramUrl?: string;
-  facebookUrl?: string;
-  email?: string;
 };
 
 type SanityImageRef = { asset?: { _ref?: string } };
 type SanityHotspot = {
   pageNumber: number;
-  target: "instagram" | "facebook" | "email" | "custom";
+  target: "link" | "custom";
+  linkHref?: string;
   customHref?: string;
   label: string;
   left: number;
@@ -50,38 +48,25 @@ type SanityIssue = {
 };
 
 export async function getSiteSettings(): Promise<SiteSettings> {
-  const [doc, social] = await Promise.all([
-    client.fetch(SITE_SETTINGS_QUERY, {}, cacheOpts).catch(() => null),
-    client.fetch(SOCIAL_LINKS_QUERY, {}, cacheOpts).catch(() => null),
-  ]);
+  const doc = await client
+    .fetch(SITE_SETTINGS_QUERY, {}, cacheOpts)
+    .catch(() => null);
 
   return {
     tagline: doc?.tagline ?? SITE_DEFAULTS.tagline,
     keywords: doc?.keywords ?? [...SITE_DEFAULTS.keywords],
     ogImageUrl: doc?.ogImage ? urlForImage(doc.ogImage, 1200) : "/og-image.jpg",
     faviconUrl: doc?.favicon ? urlForImage(doc.favicon, 512) : undefined,
-    instagramUrl: social?.instagramUrl ?? SOCIAL_DEFAULTS.instagramUrl,
-    facebookUrl: social?.facebookUrl ?? undefined,
-    email: social?.email ?? SOCIAL_DEFAULTS.email,
   };
 }
 
-/**
- * Resolved here rather than stored on the hotspot, so changing the Instagram
- * handle in Site Settings updates every hotspot in every back issue at once.
- */
-function resolveHotspot(
-  spot: SanityHotspot,
-  settings: SiteSettings,
-): ReaderHotspot | null {
-  const href =
-    spot.target === "custom"
-      ? spot.customHref
-      : spot.target === "email"
-        ? settings.email && `mailto:${settings.email}`
-        : spot.target === "facebook"
-          ? settings.facebookUrl
-          : settings.instagramUrl;
+/** URLs of every reusable Link, for the site's schema.org sameAs. */
+export async function getSiteLinkUrls(): Promise<string[]> {
+  return client.fetch(SITE_LINK_URLS_QUERY, {}, cacheOpts).catch(() => []);
+}
+
+function resolveHotspot(spot: SanityHotspot): ReaderHotspot | null {
+  const href = spot.target === "custom" ? spot.customHref : spot.linkHref;
 
   if (!href) return null; // the link it points at hasn't been filled in yet
 
@@ -98,7 +83,7 @@ function resolveHotspot(
 
 const HERO_WIDTH = 900;
 
-function toIssue(doc: SanityIssue, settings: SiteSettings): Issue {
+function toIssue(doc: SanityIssue): Issue {
   const hero = imageAspect(doc.coverImage, HERO_WIDTH);
 
   return {
@@ -118,7 +103,7 @@ function toIssue(doc: SanityIssue, settings: SiteSettings): Issue {
       alt: page.alt ?? `lapa ${i + 1}`,
     })),
     hotspots: (doc.hotspots ?? [])
-      .map((spot) => resolveHotspot(spot, settings))
+      .map(resolveHotspot)
       .filter((spot): spot is ReaderHotspot => spot !== null),
   };
 }
@@ -129,21 +114,19 @@ function devFallback(): Issue | null {
 }
 
 export async function getLatestIssue(): Promise<Issue | null> {
-  const settings = await getSiteSettings();
   const doc: SanityIssue | null = await client
     .fetch(LATEST_ISSUE_QUERY, {}, cacheOpts)
     .catch(() => null);
 
-  return doc ? toIssue(doc, settings) : devFallback();
+  return doc ? toIssue(doc) : devFallback();
 }
 
 export async function getIssueBySlug(slug: string): Promise<Issue | null> {
-  const settings = await getSiteSettings();
   const doc: SanityIssue | null = await client
     .fetch(ISSUE_BY_SLUG_QUERY, { slug }, cacheOpts)
     .catch(() => null);
 
-  if (doc) return toIssue(doc, settings);
+  if (doc) return toIssue(doc);
   const fallback = devFallback();
   return fallback && fallback.slug === slug ? fallback : null;
 }

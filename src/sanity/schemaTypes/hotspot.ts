@@ -3,8 +3,8 @@ import { defineField, defineType } from "sanity";
 /**
  * An invisible link over a printed one. Per-issue data, not CSS: issue I's
  * coordinates will be wrong for issue II, and moving a link shouldn't need a
- * deploy. The href for instagram/facebook/email is resolved from Site Settings
- * at render time, not stored here.
+ * deploy. Points at either a reusable Link (see siteLink.ts) or a one-off URL
+ * typed in here.
  */
 export const hotspot = defineType({
   name: "hotspot",
@@ -22,17 +22,30 @@ export const hotspot = defineType({
       name: "target",
       title: "Links to",
       type: "string",
-      initialValue: "instagram",
+      initialValue: "link",
       options: {
         list: [
-          { title: "Instagram", value: "instagram" },
-          { title: "Facebook", value: "facebook" },
-          { title: "Email", value: "email" },
+          { title: "A saved link", value: "link" },
           { title: "Custom URL", value: "custom" },
         ],
         layout: "radio",
       },
       validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: "link",
+      title: "Link",
+      type: "reference",
+      to: [{ type: "siteLink" }],
+      hidden: ({ parent }) => parent?.target !== "link",
+      validation: (rule) =>
+        rule.custom((value, context) => {
+          const parent = context.parent as { target?: string } | undefined;
+          if (parent?.target === "link" && !value) {
+            return "Choose a link";
+          }
+          return true;
+        }),
     }),
     defineField({
       name: "customHref",

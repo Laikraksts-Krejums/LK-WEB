@@ -8,7 +8,17 @@ const ISSUE_FIELDS = /* groq */ `
   blurb,
   coverImage,
   pages[]{ key, width, height, alt },
-  hotspots[]{ pageNumber, target, customHref, label, left, right, top, height }
+  hotspots[]{
+    pageNumber,
+    target,
+    "linkHref": link->url,
+    customHref,
+    label,
+    left,
+    right,
+    top,
+    height
+  }
 `;
 
 /** The front issue: highest number wins. */
@@ -45,10 +55,7 @@ export const SITE_SETTINGS_QUERY = defineQuery(`
   }
 `);
 
-export const SOCIAL_LINKS_QUERY = defineQuery(`
-  *[_type == "socialLinks"][0]{
-    instagramUrl,
-    facebookUrl,
-    email
-  }
+/** URLs of every reusable Link, for the site's schema.org sameAs. */
+export const SITE_LINK_URLS_QUERY = defineQuery(`
+  *[_type == "siteLink"].url
 `);

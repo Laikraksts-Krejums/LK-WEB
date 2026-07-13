@@ -1,4 +1,3 @@
-import { SOCIAL_DEFAULTS } from "./site";
 import type { Issue } from "./types";
 
 const PAGE_COUNT = 18;
@@ -25,7 +24,7 @@ export const DEV_ISSUE: Issue = {
       right: 4,
       top: 82.5,
       height: 6,
-      href: SOCIAL_DEFAULTS.instagramUrl,
+      href: "https://www.instagram.com/laikrakstskrejums/",
       label: "Instagram: @laikrakstskrejums",
     },
     {
@@ -34,7 +33,7 @@ export const DEV_ISSUE: Issue = {
       right: 3,
       top: 90.5,
       height: 7.5,
-      href: `mailto:${SOCIAL_DEFAULTS.email}`,
+      href: "mailto:laikraksts.krejums@gmail.com",
       label: "E-pasts",
     },
   ],
