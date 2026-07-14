@@ -117,7 +117,7 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
           </ul>
 
           <Link href="/numuri" className={styles.all} role="menuitem">
-            visi numuri →
+            visi numuri
           </Link>
         </div>
       )}
