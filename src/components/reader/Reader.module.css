@@ -19,9 +19,9 @@
   align-items: center;
 
   gap: 0;
-  filter: drop-shadow(0 1px 2px rgba(48, 48, 46, 0.08))
-    drop-shadow(0 10px 30px rgba(48, 48, 46, 0.12))
-    drop-shadow(0 40px 60px rgba(48, 48, 46, 0.08));
+
+  /* No drop-shadow: pages sit flat on the cream, the article artwork carries
+     the spread (Krējums sketch language). */
 
   /* The stage. Reserves the height of a full two-page opening even in
      single-page mode (a narrower page centers inside it), so switching between
@@ -143,29 +143,35 @@
   transform: translateX(-50%);
 }
 
-/* Gutter fold on an open spread. v0 used :first-of-type, which never matched:
-   it counts siblings by tag, so it only ever selected page 1 (the cover), which
-   is never half of a spread. React marks the visible pages explicitly. */
-.spineLeft {
-  box-shadow: inset -8px 0 12px -8px rgba(0, 0, 0, 0.2);
-}
-.spineRight {
-  box-shadow: inset 8px 0 12px -8px rgba(0, 0, 0, 0.2);
-}
+/* No crease on the spine any more — the spread lies flat, no inset shadow and
+   no replacement (Krējums sketch language). .spineLeft/.spineRight are still
+   set by React but carry no gutter treatment. */
 
-/* Invisible clickable areas over printed links. Percentages, so they hold at
-   any page size. */
+/* Clickable areas over printed links. Percentages, so they hold at any page
+   size. Drawn as a hand-drawn orange ring that wobbles gently — "the line
+   feels alive" — rather than an invisible box. */
 .hotspot {
   position: absolute;
   display: block;
   cursor: pointer;
   background: transparent;
-  transition: background 0.18s ease;
+  border: 2px solid var(--orange);
+  border-radius: 50%;
   z-index: 5;
+  animation: hotspotWob 1.1s ease-in-out infinite alternate;
+  transition: background 0.18s ease;
 }
 .hotspot:hover {
-  background: rgba(232, 98, 60, 0.2);
+  background: rgba(240, 83, 34, 0.14);
   mix-blend-mode: multiply;
+}
+@keyframes hotspotWob {
+  from {
+    transform: rotate(-2deg);
+  }
+  to {
+    transform: rotate(2deg);
+  }
 }
 
 /* Sits over the reserved page box rather than in front of it, so revealing the
@@ -246,10 +252,6 @@
   .page {
     max-width: 100%;
   }
-  .spineLeft,
-  .spineRight {
-    box-shadow: none;
-  }
   .controls {
     gap: 0.4rem;
   }
@@ -258,5 +260,8 @@
 @media (prefers-reduced-motion: reduce) {
   .spread {
     transition: none;
+  }
+  .hotspot {
+    animation: none;
   }
 }

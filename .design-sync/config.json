@@ -1,0 +1,10 @@
+{
+  "projectId": "7711960a-e50d-4a5e-9d0f-2eda3c5abdb3",
+  "shape": "package",
+  "pkg": "lk-web",
+  "globalName": "LkWeb",
+  "srcDir": "src/components/reader",
+  "tsconfig": "tsconfig.json",
+  "cssEntry": "src/app/globals.css",
+  "readmeHeader": ".design-sync/conventions.md"
+}

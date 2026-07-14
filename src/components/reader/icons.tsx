@@ -2,64 +2,44 @@ type IconProps = {
   className?: string;
 };
 
+/* Hand-drawn glyph set (Krējums sketch language): a single wobbly stroke,
+   round caps + joins, no fill, no container. One `currentColor` — ink by
+   default, orange on hover, coloured entirely by the button around it. */
 const svgBase = {
-  width: 18,
-  height: 18,
+  width: 22,
+  height: 22,
   viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.9,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
   "aria-hidden": true,
 } as const;
 
 export function IconPrev({ className }: IconProps) {
   return (
-    <svg {...svgBase} className={className} fill="currentColor">
-      <polygon points="16,4 16,20 6,12" />
+    <svg {...svgBase} className={className}>
+      <path d="M14.3 4.2 C11 7 8.2 9.6 6.1 11.9 C8.4 14.2 11 16.9 14 20" />
     </svg>
   );
 }
 
 export function IconNext({ className }: IconProps) {
   return (
-    <svg {...svgBase} className={className} fill="currentColor">
-      <polygon points="8,4 8,20 18,12" />
+    <svg {...svgBase} className={className}>
+      <path d="M9.6 4 C12.9 7 15.8 9.5 18 12 C15.6 14.4 12.8 17 9.9 20.1" />
     </svg>
   );
 }
 
-/** Lens as a filled ring: outer disc minus inner disc, evenodd. */
-const LENS_RING =
-  "M4,11 A7,7 0 1,0 18,11 A7,7 0 1,0 4,11 Z M6,11 A5,5 0 1,0 16,11 A5,5 0 1,0 6,11 Z";
-
 export function IconZoomIn({ className }: IconProps) {
   return (
     <svg {...svgBase} className={className}>
-      <path d={LENS_RING} fillRule="evenodd" fill="currentColor" />
-      <line
-        x1="16"
-        y1="16"
-        x2="21"
-        y2="21"
-        stroke="currentColor"
-        strokeWidth={2.5}
-        strokeLinecap="round"
-      />
-      <line
-        x1="8"
-        y1="11"
-        x2="14"
-        y2="11"
-        stroke="currentColor"
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
-      <line
-        x1="11"
-        y1="8"
-        x2="11"
-        y2="14"
-        stroke="currentColor"
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
+      <path d="M10.5 4.4 C15.4 4 18.7 8.2 17.8 12.4 C17 16.4 12.7 18.6 8.8 17.2 C4.6 15.7 3.4 10.4 6.2 7 C7.4 5.5 8.9 4.7 10.5 4.4 Z" />
+      <path d="M16.6 16.2 C18 17.6 19.4 19.1 20.6 20.4" />
+      <path d="M8 10.9 C9.7 10.7 12.3 11 14 10.8" />
+      <path d="M11 8 C10.8 9.6 11.1 12.2 10.9 13.8" />
     </svg>
   );
 }
@@ -67,36 +47,20 @@ export function IconZoomIn({ className }: IconProps) {
 export function IconZoomOut({ className }: IconProps) {
   return (
     <svg {...svgBase} className={className}>
-      <path d={LENS_RING} fillRule="evenodd" fill="currentColor" />
-      <line
-        x1="16"
-        y1="16"
-        x2="21"
-        y2="21"
-        stroke="currentColor"
-        strokeWidth={2.5}
-        strokeLinecap="round"
-      />
-      <line
-        x1="8"
-        y1="11"
-        x2="14"
-        y2="11"
-        stroke="currentColor"
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
+      <path d="M10.5 4.4 C15.4 4 18.7 8.2 17.8 12.4 C17 16.4 12.7 18.6 8.8 17.2 C4.6 15.7 3.4 10.4 6.2 7 C7.4 5.5 8.9 4.7 10.5 4.4 Z" />
+      <path d="M16.6 16.2 C18 17.6 19.4 19.1 20.6 20.4" />
+      <path d="M8 10.9 C9.7 10.7 12.3 11 14 10.8" />
     </svg>
   );
 }
 
 export function IconFullscreen({ className }: IconProps) {
   return (
-    <svg {...svgBase} className={className} fill="currentColor">
-      <polygon points="3,3 3,9 5,9 5,5 9,5 9,3" />
-      <polygon points="21,3 21,9 19,9 19,5 15,5 15,3" />
-      <polygon points="3,21 3,15 5,15 5,19 9,19 9,21" />
-      <polygon points="21,21 21,15 19,15 19,19 15,19 15,21" />
+    <svg {...svgBase} className={className}>
+      <path d="M4.2 8.4 C3.9 6.9 4 5.4 4.1 4.2 C5.5 4 7 4.1 8.3 4.2" />
+      <path d="M15.8 4.1 C17.2 4 18.6 4 20 4.2 C20.1 5.5 20.1 7 19.9 8.4" />
+      <path d="M20 15.7 C20.1 17.1 20 18.6 19.9 19.9 C18.5 20.1 17 20 15.6 19.9" />
+      <path d="M8.3 19.9 C6.9 20.1 5.4 20 4.1 19.9 C3.9 18.5 4 17 4.2 15.6" />
     </svg>
   );
 }

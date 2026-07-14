@@ -1,37 +1,53 @@
-/* The one round icon button on the site. The reader's controls and the
-   masthead's issue menu both compose this, so they cannot drift apart. */
+/* The one icon button on the site. The reader's controls and the masthead's
+   issue menu both compose this, so they cannot drift apart. Krējums sketch
+   language: the glyph stands alone — no container, no outline. A native
+   <button> shows a 2px outset border unless we reset it, so `border: none`
+   here is load-bearing, not cosmetic. Ink by default, orange + a live wobble
+   on hover. */
 .pill {
   appearance: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--rule);
+  border: none;
   background: transparent;
   color: var(--ink);
   cursor: pointer;
-  border-radius: 999px;
-  transition: all 0.18s ease;
-  width: 40px;
-  height: 40px;
-  padding: 0;
+  padding: 8px;
+  transition: color 0.18s ease;
 }
 .pill svg {
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
 }
 .pill:hover:not(:disabled) {
-  background: var(--ink);
-  color: var(--cream);
-  border-color: var(--ink);
+  color: var(--orange);
+  animation: wob 0.5s ease-in-out infinite alternate;
 }
 .pill:disabled {
   opacity: 0.35;
   cursor: not-allowed;
 }
 
+/* "The line feels alive." */
+@keyframes wob {
+  from {
+    transform: rotate(-2deg);
+  }
+  to {
+    transform: rotate(2deg);
+  }
+}
+
 @media (max-width: 780px) {
-  .pill {
-    width: 36px;
-    height: 36px;
+  .pill svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pill:hover:not(:disabled) {
+    animation: none;
   }
 }

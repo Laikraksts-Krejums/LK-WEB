@@ -15,11 +15,10 @@
   max-height: min(60vh, 420px);
   overflow-y: auto;
   background: var(--cream);
-  border: 1px solid var(--rule);
+  border: 1px solid var(--ink);
   border-radius: 12px;
-  box-shadow:
-    0 2px 4px rgba(48, 48, 46, 0.06),
-    0 12px 32px rgba(48, 48, 46, 0.16);
+  /* No shadow — a crisp ink hairline lifts the panel instead (Krējums sketch
+     language: no shadows anywhere). */
   padding: 0.4rem;
   font-family: var(--font-mono);
   animation: open 0.16s ease-out;
