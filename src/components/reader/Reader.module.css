@@ -55,6 +55,11 @@
 .page {
   position: relative;
   background: #fff;
+  /* Hairline edge: restores the white-page-on-cream separation the drop-shadow
+     used to give, with no shadow (Krējums sketch language, reader fix 1). Two
+     portrait pages side by side share a 2px gutter line where their edges meet
+     — the crease, drawn rather than shaded. */
+  border: 1px solid var(--rule);
   /* Clips .sheet down to this window. That is the whole trick behind the
      half-spread views: nothing is cropped away, it is just off-window. */
   overflow: hidden;
@@ -213,10 +218,21 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: clamp(0.5rem, 2vw, 1rem);
-  margin-top: 1.75rem;
+  gap: clamp(0.4rem, 1.6vw, 0.9rem);
+  width: fit-content;
+  max-width: 100%;
+  margin: 1.75rem auto 0;
+  padding: 6px 12px;
   flex-wrap: wrap;
   font-family: var(--font-mono);
+
+  /* Cream capsule behind the glyph-only icons, so they keep contrast over a
+     dark page or in fullscreen now that the buttons carry no outline of their
+     own (Krējums sketch language, reader fix 3). */
+  background: rgba(251, 247, 240, 0.9);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  backdrop-filter: blur(3px);
 
   /* A transformed element paints above in-flow siblings, so a zoomed spread
      would cover these buttons — including the one that zooms back out. */
