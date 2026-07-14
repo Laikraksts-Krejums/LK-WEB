@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { buildPageNumbering } from "@/lib/pageLayout";
 import type { ReaderHotspot, ReaderPage } from "@/lib/types";
 import { PageList } from "./PageList";
@@ -15,6 +16,15 @@ type ReaderProps = {
   pages: ReaderPage[];
   hotspots?: ReaderHotspot[];
 };
+
+/** One shared ease for every page turn — buttons, keys, edge-clicks, swipe.
+    Each half of the out→in slide runs for TURN_MS. */
+const TURN_MS = 220;
+const TURN_EASE = "cubic-bezier(0.22, 0.61, 0.36, 1)";
+/** Past this fraction of the stage width, a release commits the turn. */
+const SNAP_FRACTION = 0.18;
+/** Resistance applied to a drag past the first/last view. */
+const RUBBER_BAND = 0.35;
 
 /**
  * React and useZoom must never write the same DOM property on the same node:
@@ -53,7 +63,23 @@ function stageRatio(pages: ReaderPage[]): number {
 export function Reader({ pages, hotspots = [] }: ReaderProps) {
   const readerRef = useRef<HTMLDivElement>(null);
   const spreadRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
   const imgRefs = useRef<(HTMLImageElement | null)[]>([]);
+
+  // Guards a turn animation against a newer one superseding it mid-flight.
+  const turnToken = useRef(0);
+  // Honour reduced-motion for the slide (kept in a ref so the stable native
+  // gesture handlers never read a stale value).
+  const reducedMotion = useRef(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => {
+      reducedMotion.current = mq.matches;
+    };
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   const isMobile = useIsMobile();
   const [current, setCurrent] = useState(0);
@@ -106,13 +132,86 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
     viewCountRef.current = views.length;
   }, [views.length]);
 
-  const navigate = useCallback((delta: number) => {
-    const next = currentRef.current + delta;
-    if (next < 0 || next >= viewCountRef.current) return;
-    // Before the state change, so the new spread never paints mid-zoom.
-    resetZoomRef.current?.();
-    setCurrent(next);
+  // Set the slider's transform, optionally with the shared turn ease.
+  const slide = useCallback((value: string, animate: boolean) => {
+    const el = sliderRef.current;
+    if (!el) return;
+    el.style.transition = animate
+      ? `transform ${TURN_MS}ms ${TURN_EASE}`
+      : "none";
+    el.style.transform = value;
   }, []);
+
+  const navigate = useCallback(
+    (delta: number) => {
+      const el = sliderRef.current;
+      const next = currentRef.current + delta;
+      // At an end: settle the slider (a rubber-banded drag may have offset it).
+      if (next < 0 || next >= viewCountRef.current) {
+        slide("", true);
+        return;
+      }
+      // Before the state change, so the new spread never paints mid-zoom.
+      resetZoomRef.current?.();
+      const dir = delta > 0 ? 1 : -1;
+
+      if (!el || reducedMotion.current) {
+        slide("", false);
+        setCurrent(next);
+        return;
+      }
+
+      // Out → swap → in. A token lets a rapid second turn supersede this one;
+      // a timeout backs up transitionend in case it never fires.
+      const token = ++turnToken.current;
+      slide(`translateX(${-dir * 100}%)`, true);
+
+      let done = false;
+      const swap = () => {
+        if (done) return;
+        done = true;
+        el.removeEventListener("transitionend", swap);
+        clearTimeout(timer);
+        if (token !== turnToken.current) return;
+        // Swap the visible view, then drop the incoming view in on the far side
+        // (no transition) and slide it home. flushSync + reflow guarantee the
+        // start frame is painted before the slide, so there is no flash.
+        flushSync(() => setCurrent(next));
+        slide(`translateX(${dir * 100}%)`, false);
+        void el.offsetWidth;
+        slide("", true);
+      };
+      const timer = setTimeout(swap, TURN_MS + 60);
+      el.addEventListener("transitionend", swap);
+    },
+    [slide],
+  );
+
+  // Live finger-follow for a touch swipe (useZoom reports the deltas).
+  const onDragMove = useCallback((dx: number) => {
+    const atStart = currentRef.current === 0;
+    const atEnd = currentRef.current >= viewCountRef.current - 1;
+    const x = (atStart && dx > 0) || (atEnd && dx < 0) ? dx * RUBBER_BAND : dx;
+    const el = sliderRef.current;
+    if (!el) return;
+    el.style.transition = "none";
+    el.style.transform = `translateX(${x}px)`;
+  }, []);
+
+  const onDragEnd = useCallback(
+    (dx: number, width: number) => {
+      const dir = dx < 0 ? 1 : -1; // dragging left turns to the next view
+      const atStart = currentRef.current === 0;
+      const atEnd = currentRef.current >= viewCountRef.current - 1;
+      const canGo = dir > 0 ? !atEnd : !atStart;
+      if (Math.abs(dx) > width * SNAP_FRACTION && canGo) {
+        navigate(dir); // continues the drag straight into the turn
+      } else {
+        slide("", true); // snap back
+      }
+    },
+    [navigate, slide],
+  );
 
   const { isZoomed, zoomIn, zoomOut, resetZoom } = useZoom({
     readerRef,

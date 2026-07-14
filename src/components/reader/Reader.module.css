@@ -9,6 +9,12 @@
 
 .spread {
   position: relative;
+
+  /* Clips the sliding .slider to the stage so an outgoing/incoming view never
+     spills over the margins or the toolbar (and bounds a zoomed page to the
+     stage frame). */
+  overflow: hidden;
+
   display: flex;
   justify-content: center;
 
@@ -50,6 +56,20 @@
 }
 .isZoomed .spread:active {
   cursor: grabbing;
+}
+
+/* Holds the mounted pages and carries the horizontal page-turn slide. Kept as
+   its own layer so a turn's translateX never touches the zoom transform that
+   useZoom owns on .spread — Reader drives this element's transform imperatively
+   (see navigate / the drag handlers). Mirrors .spread's flex row so the pages
+   size exactly as they did when they were .spread's direct children. */
+.slider {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .page {

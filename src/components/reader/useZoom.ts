@@ -7,7 +7,6 @@ const MAX_SCALE = 4;
 const DOUBLE_TAP_SCALE = 2.5;
 /** Below this we treat the view as "not zoomed" and snap back to a clean fit. */
 const ZOOM_EPSILON = 1.001;
-const SWIPE_THRESHOLD = 50;
 const TAP_SLOP = 12;
 const DOUBLE_TAP_MS = 300;
 const DOUBLE_TAP_SLOP = 30;
@@ -20,6 +19,12 @@ type Options = {
   panningClass: string;
   hotspotClass: string;
   onNavigate: (delta: number) => void;
+  /** Live horizontal drag of a touch swipe (scale 1). dx is px from the start;
+      Reader translates the slider and rubber-bands at the ends. */
+  onDragMove: (dx: number) => void;
+  /** End of a touch swipe drag: Reader commits (past ~18% of width) or snaps
+      the slider back. */
+  onDragEnd: (dx: number, width: number) => void;
   isMobile: boolean;
   enabled: boolean;
 };
@@ -40,6 +45,8 @@ export function useZoom({
   panningClass,
   hotspotClass,
   onNavigate,
+  onDragMove,
+  onDragEnd,
   isMobile,
   enabled,
 }: Options) {
@@ -49,10 +56,18 @@ export function useZoom({
 
   // Latest-value refs: listeners attach once and must not go stale.
   const navigateRef = useRef(onNavigate);
+  const dragMoveRef = useRef(onDragMove);
+  const dragEndRef = useRef(onDragEnd);
   const isMobileRef = useRef(isMobile);
   useEffect(() => {
     navigateRef.current = onNavigate;
   }, [onNavigate]);
+  useEffect(() => {
+    dragMoveRef.current = onDragMove;
+  }, [onDragMove]);
+  useEffect(() => {
+    dragEndRef.current = onDragEnd;
+  }, [onDragEnd]);
   useEffect(() => {
     isMobileRef.current = isMobile;
   }, [isMobile]);
@@ -232,6 +247,10 @@ export function useZoom({
     let lastTapTime = 0;
     let lastTapX = 0;
     let lastTapY = 0;
+    // Axis of the current one-finger swipe: 'h' follows the finger to turn the
+    // page, 'v' is left alone so the document still scrolls. Null until the
+    // gesture clears the slop and commits to an axis.
+    let swipeAxis: "h" | "v" | null = null;
 
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
@@ -243,6 +262,7 @@ export function useZoom({
         startX = touchLastX = e.touches[0].clientX;
         startY = touchLastY = e.touches[0].clientY;
         mode = t.scale > 1 ? "pan" : "swipe";
+        swipeAxis = null;
         if (mode === "pan") reader.classList.add(panningClass);
       }
     };
@@ -261,8 +281,19 @@ export function useZoom({
         touchLastY = e.touches[0].clientY;
         clampPan();
         applyTransform();
+      } else if (mode === "swipe" && e.touches.length === 1) {
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        if (swipeAxis === null && Math.hypot(dx, dy) > TAP_SLOP) {
+          swipeAxis = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
+        }
+        // Only a horizontal swipe drives a page turn; a vertical one is left
+        // alone (no preventDefault) so the document keeps scrolling.
+        if (swipeAxis === "h") {
+          e.preventDefault();
+          dragMoveRef.current(dx);
+        }
       }
-      // Swipe mode never preventDefaults, so the page can still scroll.
     };
 
     const onTouchEnd = (e: TouchEvent) => {
@@ -288,13 +319,14 @@ export function useZoom({
       };
 
       if (mode === "swipe") {
-        const dx = endX - startX;
-        const dy = endY - startY;
-        if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
-          navigateRef.current(dx < 0 ? 1 : -1);
+        if (swipeAxis === "h") {
+          // The finger has been dragging the slider live; let Reader commit the
+          // turn (past ~18% of the stage) or snap it back.
+          dragEndRef.current(endX - startX, spread.offsetWidth);
         } else if (moved < TAP_SLOP && isDoubleTap()) {
           zoomToward(DOUBLE_TAP_SCALE, endX, endY);
         }
+        swipeAxis = null;
       } else if (mode === "pan" && moved < TAP_SLOP && isDoubleTap()) {
         resetZoom();
       }
