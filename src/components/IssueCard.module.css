@@ -43,7 +43,8 @@ li:nth-child(even) .inner {
   aspect-ratio: 1 / 1.414;
   object-fit: cover;
   background: var(--cream-deep);
-  /* No shadow — the cover art sits flat on the cream (Krējums sketch language). */
+    border: 1px solid var(--rule);
+
 }
 
 .meta {
