@@ -156,8 +156,11 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
   if (!view) return null;
 
   // A lone SPREAD image is not "single": it is a whole opening and must fill the
-  // stage, not be narrowed to a cover's width.
-  const isSingle = view.pages.length === 1 && !pages[view.pages[0]]?.isSpread;
+  // stage, not be narrowed to a cover's width. HALF a spread, though, is one
+  // printed page and sizes like any other (mobile only).
+  const isSingle =
+    view.pages.length === 1 &&
+    (!pages[view.pages[0]]?.isSpread || Boolean(view.half));
 
   return (
     <div
@@ -179,7 +182,7 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
         <PageList
           pages={pages}
           hotspots={hotspots}
-          visible={view.pages}
+          view={view}
           registerImg={registerImg}
         />
         {!ready && <div className={styles.loading}>ielādē numuru</div>}

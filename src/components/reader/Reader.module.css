@@ -53,16 +53,17 @@
 }
 
 .page {
-  position: relative; /* anchors the absolutely-positioned hotspots */
+  position: relative;
   background: #fff;
+  /* Clips .sheet down to this window. That is the whole trick behind the
+     half-spread views: nothing is cropped away, it is just off-window. */
   overflow: hidden;
   display: none;
 
   /* The SCAN's own ratio (PageList sets --page-ar from the stored dimensions),
-     so this box is exactly the image's box. That equality is the contract the
-     hotspots rely on. Was a hardcoded 1/1.414 + object-fit:cover, which
-     center-cropped every scan whose ratio differed and sawed both outer halves
-     off a landscape two-page spread. */
+     so this window is exactly the image's box. Was a hardcoded 1/1.414 +
+     object-fit:cover, which center-cropped every scan whose ratio differed and
+     sawed both outer halves off a landscape two-page spread. */
   aspect-ratio: var(--page-ar, 0.7072);
 
   /* Height stays AUTO — always derived from the ratio, never definite. A
@@ -105,7 +106,16 @@
   width: min(540px, 90vw);
 }
 
-.page img {
+/* The IMAGE's box, always, exactly — even when .page above is showing only half
+   of it. The hotspots are percentages of the whole scan, so they anchor HERE and
+   never need remapping: a half view just slides this box under the window. */
+.sheet {
+  position: relative; /* anchors the absolutely-positioned hotspots */
+  width: 100%;
+  height: 100%;
+}
+
+.sheet img {
   display: block;
   width: 100%;
   height: 100%;
@@ -113,6 +123,24 @@
      is a no-op in the normal case — and a safe letterbox on white, rather than a
      crop, if the stored dimensions are ever missing or stale. */
   object-fit: contain;
+}
+
+/* One half of a spread — mobile only (views.ts: buildMobileViews). The window
+   narrows to half the scan's ratio and the sheet stays full width inside it, so
+   exactly one printed page shows. The other half is off-window, not cropped. */
+.half {
+  aspect-ratio: calc(var(--page-ar, 1.4144) / 2);
+  flex-basis: auto;
+}
+.half .sheet {
+  width: 200%;
+}
+.halfLeft .sheet {
+  transform: none;
+}
+.halfRight .sheet {
+  /* Half the sheet's own width — i.e. one printed page. */
+  transform: translateX(-50%);
 }
 
 /* Gutter fold on an open spread. v0 used :first-of-type, which never matched:
