@@ -167,7 +167,10 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
       slide(`translateX(${-dir * 100}%)`, true);
 
       let done = false;
-      const swap = () => {
+      const swap = (e?: TransitionEvent) => {
+        // Ignore transitions bubbling up from children (e.g. a hotspot's
+        // background) — only the slider's own transform ends a turn.
+        if (e && (e.target !== el || e.propertyName !== "transform")) return;
         if (done) return;
         done = true;
         el.removeEventListener("transitionend", swap);
@@ -220,6 +223,8 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
     panningClass: styles.isPanning,
     hotspotClass: styles.hotspot,
     onNavigate: navigate,
+    onDragMove,
+    onDragEnd,
     isMobile,
     enabled: ready,
   });
@@ -278,12 +283,14 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
           .filter(Boolean)
           .join(" ")}
       >
-        <PageList
-          pages={pages}
-          hotspots={hotspots}
-          view={view}
-          registerImg={registerImg}
-        />
+        <div ref={sliderRef} className={styles.slider}>
+          <PageList
+            pages={pages}
+            hotspots={hotspots}
+            view={view}
+            registerImg={registerImg}
+          />
+        </div>
         {!ready && <div className={styles.loading}>ielādē numuru</div>}
       </div>
 
