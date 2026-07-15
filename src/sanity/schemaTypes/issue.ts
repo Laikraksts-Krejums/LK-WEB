@@ -1,5 +1,6 @@
 import { defineArrayMember, defineField, defineType } from "sanity";
 import { R2PagesInput } from "../components/R2PagesInput";
+import { HotspotsInput } from "../components/HotspotsInput";
 
 export const issue = defineType({
   name: "issue",
@@ -28,6 +29,14 @@ export const issue = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: "edition",
+      title: "Edition label",
+      description:
+        'Optional. Shown on the archive cards instead of "numurs I". For example: "pavasaris 2026". Leave empty to fall back to the issue number.',
+      type: "string",
+      group: "content",
+    }),
+    defineField({
       name: "slug",
       title: "URL slug",
       type: "slug",
@@ -53,16 +62,8 @@ export const issue = defineType({
     defineField({
       name: "coverImage",
       title: "Cover image",
-      description: "Shown on the issue archive page.",
-      type: "image",
-      group: "content",
-      options: { hotspot: true },
-    }),
-    defineField({
-      name: "heroImage",
-      title: "Homepage poster",
       description:
-        "Optional. Leave empty and the homepage renders with no poster — this is how you take the poster down.",
+        "Shown on the issue archive page, and as the homepage poster when this is the newest issue. Leave empty and the homepage renders with no poster: this is how you take the poster down.",
       type: "image",
       group: "content",
       options: { hotspot: true },
@@ -72,29 +73,23 @@ export const issue = defineType({
       name: "pages",
       title: "Pages",
       description:
-        "Drag the page images here. The order in this list is the order in the magazine — drag rows to reorder.",
+        "Drag the page images here. The order in this list is the order in the magazine: drag rows to reorder. A landscape scan of a two-page spread is fine, upload it as one image and the reader shows it as a full opening.",
       type: "array",
       group: "pages",
       of: [defineArrayMember({ type: "r2Image" })],
       components: { input: R2PagesInput },
       validation: (rule) => rule.required().min(1),
     }),
-    defineField({
-      name: "pdf",
-      title: "PDF",
-      type: "file",
-      group: "pages",
-      options: { accept: "application/pdf" },
-    }),
 
     defineField({
       name: "hotspots",
       title: "Page links",
       description:
-        "Invisible clickable areas over printed text — e.g. the Instagram handle and email on the back cover.",
+        "Invisible clickable areas over printed text, e.g. the Instagram handle and email on the back cover.",
       type: "array",
       group: "links",
       of: [defineArrayMember({ type: "hotspot" })],
+      components: { input: HotspotsInput },
     }),
   ],
   orderings: [

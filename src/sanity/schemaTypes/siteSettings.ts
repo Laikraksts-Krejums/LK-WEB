@@ -9,30 +9,11 @@ export const siteSettings = defineType({
     defineField({
       name: "tagline",
       title: "Tagline",
+      description:
+        "Shown on the homepage. Also used as the search engine description.",
       type: "text",
       rows: 2,
       validation: (rule) => rule.required(),
-    }),
-    defineField({
-      name: "instagramUrl",
-      title: "Instagram",
-      type: "url",
-    }),
-    defineField({
-      name: "facebookUrl",
-      title: "Facebook",
-      type: "url",
-    }),
-    defineField({
-      name: "email",
-      title: "Email",
-      type: "string",
-    }),
-    defineField({
-      name: "metaDescription",
-      title: "Search engine description",
-      type: "text",
-      rows: 2,
     }),
     defineField({
       name: "keywords",
@@ -44,7 +25,13 @@ export const siteSettings = defineType({
     defineField({
       name: "ogImage",
       title: "Social sharing image",
-      description: "1200×630.",
+      description: "1200x630.",
+      type: "image",
+    }),
+    defineField({
+      name: "favicon",
+      title: "Favicon",
+      description: "Square image, at least 512x512.",
       type: "image",
     }),
   ],

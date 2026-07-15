@@ -1,4 +1,5 @@
 import { defineField, defineType } from "sanity";
+import { isSpreadImage } from "@/domain/page";
 import { r2PublicUrl } from "@/lib/r2";
 
 /**
@@ -30,6 +31,24 @@ export const r2Image = defineType({
       readOnly: true,
     }),
     defineField({
+      name: "layout",
+      title: "Layout",
+      description:
+        "Auto reads the scan itself: an image wider than it is tall is a two-page spread. Override only when a scan lies, e.g. a single page that happens to have been scanned in landscape.",
+      type: "string",
+      initialValue: "auto",
+      options: {
+        list: [
+          { title: "Auto (from the image)", value: "auto" },
+          { title: "Single page", value: "single" },
+          { title: "Two-page spread", value: "spread" },
+        ],
+        layout: "radio",
+      },
+      // Deliberately not required: every page uploaded before this field existed
+      // has no value, and a required field would invalidate every published issue.
+    }),
+    defineField({
       name: "originalFilename",
       title: "Filename",
       type: "string",
@@ -48,11 +67,24 @@ export const r2Image = defineType({
     }),
   ],
   preview: {
-    select: { key: "key", filename: "originalFilename", alt: "alt" },
-    prepare({ key, filename, alt }) {
+    select: {
+      key: "key",
+      filename: "originalFilename",
+      alt: "alt",
+      layout: "layout",
+      width: "width",
+      height: "height",
+    },
+    // The subtitle says which pages the reader thinks this image holds, so a
+    // misread scan is visible in the list without opening the row.
+    prepare({ key, filename, alt, layout, width, height }) {
+      const kind = isSpreadImage(layout, width, height)
+        ? "two-page spread"
+        : "single page";
+
       return {
         title: filename || key || "page",
-        subtitle: alt,
+        subtitle: [kind, alt].filter(Boolean).join(" · "),
         media: key
           ? // eslint-disable-next-line @next/next/no-img-element
             <img src={r2PublicUrl(key)} alt="" />

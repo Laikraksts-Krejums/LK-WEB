@@ -3,8 +3,8 @@ import { defineField, defineType } from "sanity";
 /**
  * An invisible link over a printed one. Per-issue data, not CSS: issue I's
  * coordinates will be wrong for issue II, and moving a link shouldn't need a
- * deploy. The href for instagram/facebook/email is resolved from Site Settings
- * at render time, not stored here.
+ * deploy. Points at either a reusable Link (see siteLink.ts) or a one-off URL
+ * typed in here.
  */
 export const hotspot = defineType({
   name: "hotspot",
@@ -12,9 +12,13 @@ export const hotspot = defineType({
   type: "object",
   fields: [
     defineField({
+      // Named for printed pages, but it has always addressed IMAGES — the
+      // position in the issue's Pages list. Renaming the field would be a data
+      // migration; the wording is what was wrong.
       name: "pageNumber",
-      title: "Page number",
-      description: "Which page this link sits on (1 = front cover).",
+      title: "Page image",
+      description:
+        "Which uploaded image this link sits on, its position in the Pages list (1 = the first image). A two-page spread is ONE image, so a link anywhere on it uses that image's number, not the printed page number.",
       type: "number",
       validation: (rule) => rule.required().integer().min(1),
     }),
@@ -22,17 +26,30 @@ export const hotspot = defineType({
       name: "target",
       title: "Links to",
       type: "string",
-      initialValue: "instagram",
+      initialValue: "link",
       options: {
         list: [
-          { title: "Instagram", value: "instagram" },
-          { title: "Facebook", value: "facebook" },
-          { title: "Email", value: "email" },
+          { title: "A saved link", value: "link" },
           { title: "Custom URL", value: "custom" },
         ],
         layout: "radio",
       },
       validation: (rule) => rule.required(),
+    }),
+    defineField({
+      name: "link",
+      title: "Link",
+      type: "reference",
+      to: [{ type: "siteLink" }],
+      hidden: ({ parent }) => parent?.target !== "link",
+      validation: (rule) =>
+        rule.custom((value, context) => {
+          const parent = context.parent as { target?: string } | undefined;
+          if (parent?.target === "link" && !value) {
+            return "Choose a link";
+          }
+          return true;
+        }),
     }),
     defineField({
       name: "customHref",
@@ -84,7 +101,7 @@ export const hotspot = defineType({
   preview: {
     select: { label: "label", page: "pageNumber", target: "target" },
     prepare({ label, page, target }) {
-      return { title: label || target, subtitle: `page ${page}` };
+      return { title: label || target, subtitle: `image ${page}` };
     },
   },
 });

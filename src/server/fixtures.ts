@@ -1,6 +1,7 @@
-import { SITE_DEFAULTS } from "./site";
-import type { Issue } from "./types";
+import type { Issue } from "@/domain/types";
 
+// Placeholder art for local work only. Loaded via a dynamic import gated on
+// NODE_ENV (see ./issues), so it never enters the production bundle.
 const PAGE_COUNT = 18;
 
 export const DEV_ISSUE: Issue = {
@@ -8,15 +9,13 @@ export const DEV_ISSUE: Issue = {
   title: "Nenoliec karoti",
   slug: "i",
   publishedAt: "2025-01-01",
-  heroUrl: "/hero-placeholder.jpg",
-  heroWidth: 905,
-  heroHeight: 1280,
   coverUrl: "/dev-pages/page-01.jpg",
   pages: Array.from({ length: PAGE_COUNT }, (_, i) => ({
     src: `/dev-pages/page-${String(i + 1).padStart(2, "0")}.jpg`,
     width: 1400,
     height: 1980,
     alt: `lapa ${i + 1}`,
+    isSpread: false,
   })),
   hotspots: [
     {
@@ -25,7 +24,7 @@ export const DEV_ISSUE: Issue = {
       right: 4,
       top: 82.5,
       height: 6,
-      href: SITE_DEFAULTS.instagramUrl,
+      href: "https://www.instagram.com/laikrakstskrejums/",
       label: "Instagram: @laikrakstskrejums",
     },
     {
@@ -34,7 +33,7 @@ export const DEV_ISSUE: Issue = {
       right: 3,
       top: 90.5,
       height: 7.5,
-      href: `mailto:${SITE_DEFAULTS.email}`,
+      href: "mailto:laikraksts.krejums@gmail.com",
       label: "E-pasts",
     },
   ],

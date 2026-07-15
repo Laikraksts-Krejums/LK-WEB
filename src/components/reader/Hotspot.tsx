@@ -1,4 +1,5 @@
-import type { ReaderHotspot } from "@/lib/types";
+import { boxToStyle } from "@/domain/box";
+import type { ReaderHotspot } from "@/domain/types";
 import styles from "./Reader.module.css";
 
 /**
@@ -14,12 +15,7 @@ export function Hotspot({ spot }: { spot: ReaderHotspot }) {
       href={spot.href}
       className={styles.hotspot}
       aria-label={spot.label}
-      style={{
-        left: `${spot.left}%`,
-        right: `${spot.right}%`,
-        top: `${spot.top}%`,
-        height: `${spot.height}%`,
-      }}
+      style={boxToStyle(spot)}
       {...(isExternal
         ? { target: "_blank", rel: "noopener noreferrer" }
         : undefined)}

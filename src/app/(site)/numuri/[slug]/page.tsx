@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Masthead } from "@/components/Masthead";
 import { Reader } from "@/components/reader/Reader";
-import { Tagline } from "@/components/Tagline";
-import { getIssueBySlug } from "@/lib/issues";
+import { getIssueBySlug } from "@/server/issues";
 import { client } from "@/sanity/client";
 import { ISSUE_SLUGS_QUERY } from "@/sanity/queries";
 
@@ -41,12 +39,8 @@ export default async function IssuePage({ params }: Props) {
   if (!issue) notFound();
 
   return (
-    <>
-      <Masthead />
-      <main>
-        <Tagline>{issue.blurb ?? issue.title}</Tagline>
-        <Reader pages={issue.pages} hotspots={issue.hotspots} />
-      </main>
-    </>
+    <main>
+      <Reader pages={issue.pages} hotspots={issue.hotspots} />
+    </main>
   );
 }

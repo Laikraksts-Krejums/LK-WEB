@@ -3,13 +3,23 @@ import { defineQuery } from "next-sanity";
 const ISSUE_FIELDS = /* groq */ `
   number,
   title,
+  edition,
   "slug": slug.current,
   publishedAt,
   blurb,
   coverImage,
-  heroImage,
-  pages[]{ key, width, height, alt },
-  hotspots[]{ pageNumber, target, customHref, label, left, right, top, height }
+  pages[]{ key, width, height, alt, layout },
+  hotspots[]{
+    pageNumber,
+    target,
+    "linkHref": link->url,
+    customHref,
+    label,
+    left,
+    right,
+    top,
+    height
+  }
 `;
 
 /** The front issue: highest number wins. */
@@ -21,11 +31,12 @@ export const ISSUE_BY_SLUG_QUERY = defineQuery(`
   *[_type == "issue" && slug.current == $slug][0]{ ${ISSUE_FIELDS} }
 `);
 
-/** Archive listing — no page images, they are not needed for a card. */
+/** Archive listing: no page images, they are not needed for a card. */
 export const ALL_ISSUES_QUERY = defineQuery(`
   *[_type == "issue"] | order(number desc){
     number,
     title,
+    edition,
     "slug": slug.current,
     publishedAt,
     blurb,
@@ -40,11 +51,13 @@ export const ISSUE_SLUGS_QUERY = defineQuery(`
 export const SITE_SETTINGS_QUERY = defineQuery(`
   *[_type == "siteSettings"][0]{
     tagline,
-    instagramUrl,
-    facebookUrl,
-    email,
-    metaDescription,
     keywords,
-    ogImage
+    ogImage,
+    favicon
   }
+`);
+
+/** URLs of every reusable Link, for the site's schema.org sameAs. */
+export const SITE_LINK_URLS_QUERY = defineQuery(`
+  *[_type == "siteLink"].url
 `);
