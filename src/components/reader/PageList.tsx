@@ -52,10 +52,6 @@ export function PageList({
       {views.map((view, v) => {
         const offset = v - current;
 
-        // Two IMAGES side by side — distinct from page.isSpread, which is one
-        // image holding two printed pages.
-        const isPair = view.pages.length === 2;
-
         // A lone SPREAD image is not "single": it is a whole opening and must
         // fill the stage, not be narrowed to a cover's width. HALF a spread,
         // though, is one printed page and sizes like any other (mobile only).
@@ -78,18 +74,13 @@ export function PageList({
             // on the page in front of you.
             inert={offset !== 0}
           >
-            {view.pages.map((i, k) => {
+            {view.pages.map((i) => {
               const page = pages[i];
               if (!page) return null;
 
               const pageHotspots = hotspots.filter((h) => h.pageNumber === i + 1);
 
               const classes = [styles.page];
-              // Only drives the gutter shadows: a spread scan already contains
-              // the real fold, so it never gets a synthetic one.
-              if (isPair) {
-                classes.push(k === 0 ? styles.spineLeft : styles.spineRight);
-              }
               // Only ever set by buildMobileViews.
               if (view.half) {
                 classes.push(
