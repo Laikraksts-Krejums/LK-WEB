@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "../globals.css";
-import styles from "../layout.module.css";
 import { Masthead } from "@/components/Masthead";
 import { R2_PUBLIC_ORIGIN } from "@/lib/r2";
 import { SITE_DEFAULTS, SITE_NAME, SITE_URL } from "@/lib/site";
@@ -75,7 +74,7 @@ export default async function SiteLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <div className={styles.shell}>
+        <div className="mx-auto min-h-[100dvh] max-w-[1400px] px-[clamp(1rem,3vw,2rem)] pt-[clamp(1rem,2vw,1.5rem)] pb-12 in-fullscreen:p-4">
           <Masthead issues={issues} />
           {children}
         </div>

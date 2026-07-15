@@ -5,6 +5,9 @@
    src/domain/breakpoints.ts exactly — keep the two 780s in sync. */
 @custom-variant mobile (@media (max-width: 780px));
 
+/* `.shell` gets tighter padding when an ancestor is fullscreen. */
+@custom-variant in-fullscreen (:fullscreen &);
+
 /* Cream + black from the launch poster; orange is a single accent.
    `static` keeps every token in :root even when Tailwind's scanner cannot see
    it used — Reader.module.css references these vars from a separate stylesheet. */
@@ -21,6 +24,7 @@
 
   --animate-wob: wob 0.5s ease-in-out infinite alternate;
   --animate-wob-slow: wob 1.1s ease-in-out infinite alternate;
+  --animate-panel: panel 0.16s ease-out;
 
   @keyframes wob {
     from {
@@ -30,17 +34,13 @@
       transform: rotate(2deg);
     }
   }
-}
 
-/* Legacy token aliases. The CSS modules still read the un-prefixed names; each
-   alias is dropped as its module migrates to utilities. */
-:root {
-  --cream: var(--color-cream);
-  --cream-deep: var(--color-cream-deep);
-  --ink: var(--color-ink);
-  --ink-soft: var(--color-ink-soft);
-  --orange: var(--color-orange);
-  --rule: var(--color-rule);
+  @keyframes panel {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
 }
 
 @layer base {

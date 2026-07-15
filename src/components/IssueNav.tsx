@@ -3,32 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { IconButton } from "@/components/ui/IconButton";
+import { Eyebrow } from "@/components/ui/Eyebrow";
+import { IconMenu } from "@/components/ui/icons";
 import type { IssueSummary } from "@/domain/types";
-import styles from "./IssueNav.module.css";
-
-function IconMenu() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden fill="none" stroke="currentColor">
-      <line x1="4" y1="7" x2="20" y2="7" strokeWidth={2} strokeLinecap="round" />
-      <line
-        x1="4"
-        y1="12"
-        x2="20"
-        y2="12"
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
-      <line
-        x1="4"
-        y1="17"
-        x2="20"
-        y2="17"
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
 
 /**
  * The issue list is ordered `number desc`, so issues[0] is the one the homepage
@@ -80,11 +58,9 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
   const current = activeSlug(pathname, issues);
 
   return (
-    <div className={styles.nav} ref={navRef}>
-      <button
+    <div className="relative" ref={navRef}>
+      <IconButton
         ref={triggerRef}
-        type="button"
-        className={styles.trigger}
         onClick={() => setOpen((isOpen) => !isOpen)}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -92,31 +68,49 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
         aria-label="numuri"
       >
         <IconMenu />
-      </button>
+      </IconButton>
 
       {open && (
-        <div className={styles.panel} id="issue-menu" role="menu">
-          <ul className={styles.list}>
+        // No shadow — a crisp ink hairline lifts the panel (Krējums: no shadows).
+        <div
+          id="issue-menu"
+          role="menu"
+          className="absolute right-0 top-[calc(100%+0.6rem)] max-h-[min(60vh,420px)] min-w-[240px] max-w-[min(320px,calc(100vw-2rem))] animate-panel overflow-y-auto rounded-xl border border-ink bg-cream p-[0.4rem] font-mono motion-reduce:animate-none"
+        >
+          <ul className="m-0 list-none p-0">
             {issues.map((issue) => {
               const isCurrent = issue.slug === current;
               return (
                 <li key={issue.slug}>
                   <Link
                     href={`/numuri/${issue.slug}`}
-                    className={styles.item}
                     role="menuitem"
                     aria-current={isCurrent ? "page" : undefined}
+                    className="flex items-baseline gap-[0.6rem] rounded-lg px-[0.7rem] py-[0.6rem] text-ink no-underline transition-[background] duration-[140ms] hover:bg-cream-deep motion-reduce:transition-none"
                   >
-                    <span className={styles.number}>nr. {issue.number}</span>
-                    <span className={styles.title}>{issue.title}</span>
-                    {isCurrent && <span className={styles.dot} aria-hidden />}
+                    <Eyebrow className="flex-none text-orange">
+                      nr. {issue.number}
+                    </Eyebrow>
+                    <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[0.95rem]">
+                      {issue.title}
+                    </span>
+                    {isCurrent && (
+                      <span
+                        aria-hidden
+                        className="size-[6px] flex-none rounded-full bg-orange"
+                      />
+                    )}
                   </Link>
                 </li>
               );
             })}
           </ul>
 
-          <Link href="/numuri" className={styles.all} role="menuitem">
+          <Link
+            href="/numuri"
+            role="menuitem"
+            className="mt-[0.4rem] block border-t border-rule px-[0.7rem] py-[0.6rem] font-mono text-[0.7rem] font-bold lowercase tracking-[0.12em] text-ink-soft no-underline transition-colors duration-[140ms] hover:text-ink motion-reduce:transition-none"
+          >
             visi numuri
           </Link>
         </div>

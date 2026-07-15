@@ -2,9 +2,8 @@ type IconProps = {
   className?: string;
 };
 
-/* Hand-drawn glyph set (Krējums sketch language): a single wobbly stroke,
-   round caps + joins, no fill, no container. One `currentColor` — ink by
-   default, orange on hover, coloured entirely by the button around it. */
+/* Hand-drawn glyph set (Krējums sketch language): a single wobbly stroke, round
+   caps + joins, no fill. One `currentColor`, so the button around it colours it. */
 const svgBase = {
   width: 22,
   height: 22,
@@ -61,6 +60,16 @@ export function IconFullscreen({ className }: IconProps) {
       <path d="M15.8 4.1 C17.2 4 18.6 4 20 4.2 C20.1 5.5 20.1 7 19.9 8.4" />
       <path d="M20 15.7 C20.1 17.1 20 18.6 19.9 19.9 C18.5 20.1 17 20 15.6 19.9" />
       <path d="M8.3 19.9 C6.9 20.1 5.4 20 4.1 19.9 C3.9 18.5 4 17 4.2 15.6" />
+    </svg>
+  );
+}
+
+export function IconMenu({ className }: IconProps) {
+  return (
+    <svg {...svgBase} className={className}>
+      <path d="M4 7 H20" />
+      <path d="M4 12 H20" />
+      <path d="M4 17 H20" />
     </svg>
   );
 }

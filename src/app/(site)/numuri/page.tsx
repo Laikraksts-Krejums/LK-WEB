@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { IssueCard } from "@/components/IssueCard";
 import { getAllIssues } from "@/server/issues";
-import styles from "@/components/IssueCard.module.css";
 
 // Must be a literal: Next reads route segment config statically, so an
 // imported constant here fails the build. Mirrors REVALIDATE_SECONDS.
@@ -18,21 +18,14 @@ export default async function ArchivePage() {
 
   return (
     <main>
-      <h1 className={styles.heading}>visi numuri</h1>
+      <h1 className="mx-auto mt-[clamp(1rem,2vw,1.5rem)] text-center font-serif text-[clamp(0.85rem,1.4vw,0.98rem)] font-normal italic leading-normal text-ink-soft">
+        visi numuri
+      </h1>
 
       {issues.length === 0 ? (
-        <p
-          style={{
-            textAlign: "center",
-            fontStyle: "italic",
-            color: "var(--ink-soft)",
-            padding: "4rem 1rem",
-          }}
-        >
-          vēl nav neviena numura.
-        </p>
+        <EmptyState>vēl nav neviena numura.</EmptyState>
       ) : (
-        <ul className={styles.grid}>
+        <ul className="mt-[clamp(1.5rem,4vw,2.5rem)] mb-12 grid list-none grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-[clamp(1.5rem,4vw,2.5rem)] p-0">
           {issues.map((issue) => (
             <IssueCard key={issue.slug} issue={issue} />
           ))}
