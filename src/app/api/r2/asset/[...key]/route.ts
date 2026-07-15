@@ -5,7 +5,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
  * domain and this route is never hit.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ key: string[] }> },
 ) {
   const { key } = await params;
@@ -27,5 +27,10 @@ export async function GET(
     "cache-control": "public, max-age=31536000, immutable",
   });
 
-  return new Response(await object.arrayBuffer(), { headers });
+  if (request.headers.get("if-none-match") === object.httpEtag) {
+    return new Response(null, { status: 304, headers });
+  }
+
+  // Stream the body rather than buffering the whole image into the isolate.
+  return new Response(object.body, { headers });
 }

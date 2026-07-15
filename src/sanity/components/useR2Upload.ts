@@ -15,7 +15,6 @@ export type UploadProgress = {
   total: number;
   done: number;
   current?: string;
-  error?: string;
 };
 
 /**
@@ -72,42 +71,45 @@ export function useR2Upload(issueId: string) {
 
       setProgress({ total: ordered.length, done: 0 });
 
-      for (const [i, file] of ordered.entries()) {
-        setProgress({ total: ordered.length, done: i, current: file.name });
+      // finally, not just success: a thrown upload used to leave `progress`
+      // set, which the input reads as `busy` — bricking the dropzone until a
+      // Studio reload.
+      try {
+        for (const [i, file] of ordered.entries()) {
+          setProgress({ total: ordered.length, done: i, current: file.name });
 
-        const { width, height } = await measure(file);
-        const res = await fetch(
-          `/api/r2/upload?issueId=${encodeURIComponent(issueId)}` +
-            `&filename=${encodeURIComponent(file.name)}`,
-          {
-            method: "POST",
-            headers: {
-              "content-type": file.type || "application/octet-stream",
-              ...(token ? { authorization: `Bearer ${token}` } : {}),
+          const { width, height } = await measure(file);
+          const res = await fetch(
+            `/api/r2/upload?issueId=${encodeURIComponent(issueId)}` +
+              `&filename=${encodeURIComponent(file.name)}`,
+            {
+              method: "POST",
+              headers: {
+                "content-type": file.type || "application/octet-stream",
+                ...(token ? { authorization: `Bearer ${token}` } : {}),
+              },
+              body: file,
             },
-            body: file,
-          },
-        );
+          );
 
-        if (!res.ok) {
-          const detail = await res.text().catch(() => "");
-          const message = `${file.name}: ${res.status} ${detail.slice(0, 120)}`;
-          setProgress({ total: ordered.length, done: i, error: message });
-          throw new Error(message);
+          if (!res.ok) {
+            const detail = await res.text().catch(() => "");
+            throw new Error(`${file.name}: ${res.status} ${detail.slice(0, 120)}`);
+          }
+
+          const { key } = (await res.json()) as { key: string };
+          uploaded.push({
+            key,
+            width,
+            height,
+            originalFilename: file.name,
+            size: file.size,
+          });
         }
-
-        const { key } = (await res.json()) as { key: string };
-        uploaded.push({
-          key,
-          width,
-          height,
-          originalFilename: file.name,
-          size: file.size,
-        });
+        return uploaded;
+      } finally {
+        setProgress(null);
       }
-
-      setProgress(null);
-      return uploaded;
     },
     [client, issueId],
   );

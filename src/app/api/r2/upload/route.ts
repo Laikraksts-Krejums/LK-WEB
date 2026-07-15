@@ -19,9 +19,18 @@ const EXT_BY_TYPE: Record<string, string> = {
 };
 const MAX_BYTES = 15 * 1024 * 1024;
 
-/** Cached briefly so an 18-file drop isn't 18 round-trips. */
+/** Cached briefly so an 18-file drop isn't 18 round-trips. Pruned on read so a
+    long-lived isolate cannot accumulate revoked tokens. */
 const verified = new Map<string, number>();
 const VERIFY_TTL_MS = 60_000;
+
+function isVerified(token: string): boolean {
+  const now = Date.now();
+  for (const [t, expiry] of verified) {
+    if (expiry <= now) verified.delete(t);
+  }
+  return (verified.get(token) ?? 0) > now;
+}
 
 /**
  * Asks Sanity whether this token may actually write to this project's dataset,
@@ -34,24 +43,29 @@ const VERIFY_TTL_MS = 60_000;
  * project-scoped, so a token from another project fails here too.
  */
 async function canWriteToProject(token: string): Promise<boolean> {
-  const cached = verified.get(token);
-  if (cached && Date.now() < cached) return true;
+  if (isVerified(token)) return true;
 
-  const res = await fetch(
-    `https://${projectId}.api.sanity.io/v${apiVersion}/data/mutate/${dataset}?dryRun=true`,
-    {
-      method: "POST",
-      headers: {
-        authorization: `Bearer ${token}`,
-        "content-type": "application/json",
+  let res: Response;
+  try {
+    res = await fetch(
+      `https://${projectId}.api.sanity.io/v${apiVersion}/data/mutate/${dataset}?dryRun=true`,
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          mutations: [
+            { create: { _id: "drafts.r2-upload-permission-probe", _type: "issue" } },
+          ],
+        }),
       },
-      body: JSON.stringify({
-        mutations: [
-          { create: { _id: "drafts.r2-upload-permission-probe", _type: "issue" } },
-        ],
-      }),
-    },
-  );
+    );
+  } catch {
+    // Fail closed: if Sanity is unreachable we cannot confirm write access.
+    return false;
+  }
   if (!res.ok) return false;
 
   verified.set(token, Date.now() + VERIFY_TTL_MS);
@@ -89,15 +103,17 @@ export async function POST(request: Request) {
 
   const url = new URL(request.url);
   const issueId = (url.searchParams.get("issueId") ?? "").replace(
-    /[^a-zA-Z0-9._-]/g,
+    /[^a-zA-Z0-9_-]/g,
     "",
   );
+  // A stripped id, or one that was only dots, is rejected outright rather than
+  // relying on R2's flat keyspace to neutralise `issues/../…`.
   if (!issueId) {
     return NextResponse.json({ error: "missing issueId" }, { status: 400 });
   }
 
-  const body = await request.arrayBuffer();
-  if (body.byteLength > MAX_BYTES) {
+  const body = await readBounded(request);
+  if (!body) {
     return NextResponse.json({ error: "file too large" }, { status: 413 });
   }
 
@@ -113,12 +129,48 @@ export async function POST(request: Request) {
     );
   }
 
-  await bucket.put(key, body, {
-    httpMetadata: {
-      contentType,
-      cacheControl: "public, max-age=31536000, immutable",
-    },
-  });
+  try {
+    await bucket.put(key, body, {
+      httpMetadata: {
+        contentType,
+        cacheControl: "public, max-age=31536000, immutable",
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: "storage write failed" }, { status: 502 });
+  }
 
   return NextResponse.json({ key });
+}
+
+/** Reads the body a chunk at a time, aborting once it passes MAX_BYTES — so an
+    understated content-length cannot make the isolate buffer an arbitrarily
+    large upload before the size is checked. */
+async function readBounded(request: Request): Promise<Uint8Array | null> {
+  const reader = request.body?.getReader();
+  if (!reader) {
+    const buf = new Uint8Array(await request.arrayBuffer());
+    return buf.byteLength > MAX_BYTES ? null : buf;
+  }
+
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_BYTES) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return out;
 }
