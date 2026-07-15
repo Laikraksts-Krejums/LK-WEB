@@ -94,20 +94,23 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
                     <Eyebrow className="flex-none text-orange">
                       nr. {issue.number}
                     </Eyebrow>
-                    <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[0.95rem]">
+                    {/* The title shrinks to its own text, so the hand-drawn
+                        underline nested inside it spans exactly the text width.
+                        The line marks the item: always shown (orange) for the
+                        current article, drawn in ink on hover otherwise — this
+                        replaces the old orange dot. The bottom padding keeps the
+                        line clear of the glyphs and inside the clip box. */}
+                    <span className="relative min-w-0 overflow-hidden text-ellipsis whitespace-nowrap pb-[0.28rem] font-serif text-[0.95rem]">
                       {issue.title}
+                      <IconUnderline
+                        className={clsx(
+                          "pointer-events-none absolute inset-x-0 bottom-0 h-[6px] w-full transition-opacity duration-[140ms] motion-reduce:transition-none",
+                          isCurrent
+                            ? "text-orange opacity-100"
+                            : "text-ink opacity-0 group-hover:opacity-70",
+                        )}
+                      />
                     </span>
-                    {/* A hand-drawn line marks the item: always shown (orange)
-                        for the current article, drawn in ink on hover otherwise
-                        — this replaces the old orange dot. */}
-                    <IconUnderline
-                      className={clsx(
-                        "pointer-events-none absolute inset-x-[0.7rem] bottom-[0.28rem] h-[7px] w-auto transition-opacity duration-[140ms] motion-reduce:transition-none",
-                        isCurrent
-                          ? "text-orange opacity-100"
-                          : "text-ink opacity-0 group-hover:opacity-70",
-                      )}
-                    />
                   </Link>
                 </li>
               );
