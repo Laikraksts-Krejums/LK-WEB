@@ -40,6 +40,14 @@
   transition: transform 0.14s ease-out;
 }
 
+/* Click-to-turn is confined to the outer gutters, so a click on the article
+   itself no longer flips the page (useZoom: EDGE_ZONE_*). A zone you cannot see
+   is a zone nobody finds, so hovering one arms the cursor — useZoom sets
+   data-edge on hover and clears it while zoomed, where a drag is a pan. */
+.spread[data-edge] {
+  cursor: pointer;
+}
+
 /* No transition during a live drag/pinch; keep it for discrete zoom steps. */
 .isPanning .spread {
   transition: none;
@@ -58,22 +66,61 @@
   cursor: grabbing;
 }
 
-/* Holds the mounted pages and carries the horizontal page-turn slide. Kept as
-   its own layer so a turn's translateX never touches the zoom transform that
-   useZoom owns on .spread — Reader drives this element's transform imperatively
-   (see navigate / the drag handlers). Mirrors .spread's flex row so the pages
-   size exactly as they did when they were .spread's direct children. */
+/* The carousel track. Holds every view and carries the horizontal page-turn
+   slide. Kept as its own layer so a turn's translateX never touches the zoom
+   transform that useZoom owns on .spread — Reader drives this element's
+   transform imperatively (see navigate / the drag handlers). */
 .slider {
+  position: relative; /* the containing block for the off-stage slots */
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0;
   width: 100%;
   height: 100%;
 }
 
+/* One VIEW, exactly one stage wide, parked at (v - current) widths from centre.
+   The neighbours are on stage the whole time, just outside .spread's overflow
+   clip — which is the entire point: a swipe pulls a page that is ALREADY THERE
+   in under the finger, rather than sliding the old one out over nothing and
+   dropping the new one in afterwards.
+
+   Only the current slot is in flow. The others are lifted out of it so they
+   cannot influence the stage's height — on mobile .spread has no aspect-ratio
+   and takes its height from its content, so a taller neighbour would otherwise
+   grow the stage and shove the toolbar down mid-swipe. */
+.slot {
+  position: absolute;
+  inset: 0;
+  transform: translateX(var(--slot-x, 0));
+
+  /* Mounted, but rendered nowhere: a view more than one turn away cannot be
+     reached without another turn, so there is nothing to gain from rasterising
+     it. The <img> elements inside stay in the DOM and stay decoded — see the
+     header of PageList.tsx. */
+  display: none;
+
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+}
+
+/* The current view and the one either side of it: on stage. */
+.slot.isNear {
+  display: flex;
+}
+
+/* In flow, and the only slot that is — so the stage is sized by the view you
+   are actually reading. */
+.slot.isCurrent {
+  position: relative;
+  inset: auto;
+  flex: 0 0 100%;
+}
+
 .page {
   position: relative;
+  display: block;
   background: #fff;
   /* Hairline edge: restores the white-page-on-cream separation the drop-shadow
      used to give, with no shadow (Krējums sketch language, reader fix 1). Two
@@ -83,7 +130,6 @@
   /* Clips .sheet down to this window. That is the whole trick behind the
      half-spread views: nothing is cropped away, it is just off-window. */
   overflow: hidden;
-  display: none;
 
   /* The SCAN's own ratio (PageList sets --page-ar from the stored dimensions),
      so this window is exactly the image's box. Was a hardcoded 1/1.414 +
@@ -115,18 +161,19 @@
   min-width: 0;
   min-height: 0;
 }
-.page.isVisible {
-  display: block;
-}
 
 /* A lone SINGLE page: a cover, a back cover, or an odd page facing a spread.
-   Not a lone spread — that is a whole opening and fills the stage, so Reader
-   only sets .single when the view's one page is not a spread.
+   Not a lone spread — that is a whole opening and fills the stage, so PageList
+   only sets .isSingle when the view's one page is not a spread.
+
+   Per SLOT, not per stage: with three views on stage at once, the cover can be
+   sliding out while a two-page opening slides in, and each has to size by its
+   own rule.
 
    Deliberately sets no max-width: the ratio-aware cap on .page has to keep
    applying, or on a short stage the height would be clamped instead and the
    hotspots would drift. */
-.single .page.isVisible {
+.slot.isSingle .page {
   flex-basis: auto; /* an explicit basis would otherwise beat the width below */
   width: min(540px, 90vw);
 }
@@ -269,9 +316,15 @@
   font-size: 0.85rem;
   color: var(--ink-soft);
   letter-spacing: 0.05em;
-  min-width: 5em;
   text-align: center;
   font-weight: 700;
+
+  /* Wide enough for the longest label an issue can produce ("50–51 / 52"), and
+     tabular figures so the digits do not breathe either. The toolbar is a
+     fit-content capsule centred in the column: let this box grow by even a few
+     px on a page turn and the whole capsule re-centres, sliding the arrows out
+     from under the cursor you are clicking them with. */
+  min-width: 8em;
 }
 
 @media (max-width: 780px) {
@@ -283,7 +336,7 @@
   }
   /* With no reserved stage height there is nothing to fit inside, so the
      ratio-aware cap has no meaning here — and left in place it would squash a
-     lone portrait page to half the column. `.single` still holds one to
+     lone portrait page to half the column. `.isSingle` still holds one to
      min(540px, 90vw); a spread, being two pages wide, takes the full column. */
   .page {
     max-width: 100%;

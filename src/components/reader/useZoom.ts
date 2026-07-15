@@ -11,6 +11,21 @@ const TAP_SLOP = 12;
 const DOUBLE_TAP_MS = 300;
 const DOUBLE_TAP_SLOP = 30;
 
+/** The tail of a swipe we measure the release speed over. Long enough to be
+    steady, short enough that a finger which stopped dead reads as stopped. */
+const VELOCITY_WINDOW_MS = 100;
+
+/** While zoomed, horizontal drag the pan could not absorb — the page is already
+    hard against its edge — that adds up to a page turn. Generous, so ordinary
+    panning against the edge never turns by accident. */
+const EDGE_TURN_PX = 72;
+
+/** Click-to-turn lives in the outer gutters only, so a click on the article
+    itself does not flip the page. */
+const EDGE_ZONE_FRACTION = 0.12;
+const EDGE_ZONE_MIN = 56;
+const EDGE_ZONE_MAX = 140;
+
 type Options = {
   readerRef: RefObject<HTMLDivElement | null>;
   spreadRef: RefObject<HTMLDivElement | null>;
@@ -18,13 +33,17 @@ type Options = {
   zoomedClass: string;
   panningClass: string;
   hotspotClass: string;
-  onNavigate: (delta: number) => void;
+  /** ms is the settle duration; omitted, the caller's default turn is used. */
+  onNavigate: (delta: number, ms?: number) => void;
+  /** A touch swipe is taking hold of the track. Reader lands any turn still in
+      flight and records where the track is, so the drag continues from there. */
+  onDragStart: () => void;
   /** Live horizontal drag of a touch swipe (scale 1). dx is px from the start;
-      Reader translates the slider and rubber-bands at the ends. */
+      Reader translates the track and rubber-bands at the ends. */
   onDragMove: (dx: number) => void;
-  /** End of a touch swipe drag: Reader commits (past ~18% of width) or snaps
-      the slider back. */
-  onDragEnd: (dx: number, width: number) => void;
+  /** End of a touch swipe: Reader commits (dragged past ~18% of the width, or
+      flicked) or snaps the track back. velocity is px/ms, negative leftwards. */
+  onDragEnd: (dx: number, width: number, velocity: number) => void;
   isMobile: boolean;
   enabled: boolean;
 };
@@ -45,6 +64,7 @@ export function useZoom({
   panningClass,
   hotspotClass,
   onNavigate,
+  onDragStart,
   onDragMove,
   onDragEnd,
   isMobile,
@@ -56,12 +76,16 @@ export function useZoom({
 
   // Latest-value refs: listeners attach once and must not go stale.
   const navigateRef = useRef(onNavigate);
+  const dragStartRef = useRef(onDragStart);
   const dragMoveRef = useRef(onDragMove);
   const dragEndRef = useRef(onDragEnd);
   const isMobileRef = useRef(isMobile);
   useEffect(() => {
     navigateRef.current = onNavigate;
   }, [onNavigate]);
+  useEffect(() => {
+    dragStartRef.current = onDragStart;
+  }, [onDragStart]);
   useEffect(() => {
     dragMoveRef.current = onDragMove;
   }, [onDragMove]);
@@ -251,8 +275,26 @@ export function useZoom({
     // page, 'v' is left alone so the document still scrolls. Null until the
     // gesture clears the slop and commits to an axis.
     let swipeAxis: "h" | "v" | null = null;
+    // Tail of the swipe, for the release speed.
+    let samples: { x: number; t: number }[] = [];
+    // Horizontal drag a zoomed pan could not absorb, and whether it has already
+    // spent itself on a turn.
+    let edgeSpill = 0;
+    let edgeTurned = false;
+
+    /** Speed at the moment of release, px/ms, negative leftwards. */
+    const releaseVelocity = (endX: number, endT: number) => {
+      const cutoff = endT - VELOCITY_WINDOW_MS;
+      const first = samples.find((s) => s.t >= cutoff) ?? samples[0];
+      if (!first) return 0;
+      const dt = endT - first.t;
+      return dt > 0 ? (endX - first.x) / dt : 0;
+    };
 
     const onTouchStart = (e: TouchEvent) => {
+      edgeSpill = 0;
+      edgeTurned = false;
+
       if (e.touches.length === 2) {
         mode = "pinch";
         pinchStartDist = dist(e.touches[0], e.touches[1]) || 1;
@@ -263,6 +305,7 @@ export function useZoom({
         startY = touchLastY = e.touches[0].clientY;
         mode = t.scale > 1 ? "pan" : "swipe";
         swipeAxis = null;
+        samples = [{ x: startX, t: performance.now() }];
         if (mode === "pan") reader.classList.add(panningClass);
       }
     };
@@ -273,24 +316,54 @@ export function useZoom({
         const d = dist(e.touches[0], e.touches[1]);
         const m = mid(e.touches[0], e.touches[1]);
         zoomToward(pinchStartScale * (d / pinchStartDist), m.x, m.y);
-      } else if (mode === "pan" && e.touches.length === 1) {
+        return;
+      }
+
+      if (mode === "pan" && e.touches.length === 1) {
         e.preventDefault();
-        t.tx += e.touches[0].clientX - touchLastX;
+        const stepX = e.touches[0].clientX - touchLastX;
+        const txBefore = t.tx;
+
+        t.tx += stepX;
         t.ty += e.touches[0].clientY - touchLastY;
         touchLastX = e.touches[0].clientX;
         touchLastY = e.touches[0].clientY;
         clampPan();
         applyTransform();
-      } else if (mode === "swipe" && e.touches.length === 1) {
-        const dx = e.touches[0].clientX - startX;
+
+        // Horizontal movement the pan could not take — the page is already hard
+        // against its edge. Rather than dead-ending there, let it accumulate
+        // into a page turn: a reader who is zoomed in should not have to zoom
+        // out to move on. A change of direction spends the accumulation.
+        const spill = stepX - (t.tx - txBefore);
+        if (spill * edgeSpill < 0) edgeSpill = 0;
+        edgeSpill += spill;
+
+        if (!edgeTurned && Math.abs(edgeSpill) > EDGE_TURN_PX) {
+          edgeTurned = true;
+          mode = null; // the gesture has become a turn; it is no longer a pan
+          reader.classList.remove(panningClass);
+          navigateRef.current(edgeSpill < 0 ? 1 : -1); // Reader resets the zoom
+        }
+        return;
+      }
+
+      if (mode === "swipe" && e.touches.length === 1) {
+        const x = e.touches[0].clientX;
+        const dx = x - startX;
         const dy = e.touches[0].clientY - startY;
+
         if (swipeAxis === null && Math.hypot(dx, dy) > TAP_SLOP) {
           swipeAxis = Math.abs(dx) > Math.abs(dy) ? "h" : "v";
+          if (swipeAxis === "h") dragStartRef.current();
         }
+
         // Only a horizontal swipe drives a page turn; a vertical one is left
         // alone (no preventDefault) so the document keeps scrolling.
         if (swipeAxis === "h") {
           e.preventDefault();
+          samples.push({ x, t: performance.now() });
+          if (samples.length > 8) samples.shift();
           dragMoveRef.current(dx);
         }
       }
@@ -320,9 +393,14 @@ export function useZoom({
 
       if (mode === "swipe") {
         if (swipeAxis === "h") {
-          // The finger has been dragging the slider live; let Reader commit the
-          // turn (past ~18% of the stage) or snap it back.
-          dragEndRef.current(endX - startX, spread.offsetWidth);
+          // The finger has been dragging the track live, with the next page
+          // already on stage behind it. Let Reader carry it the rest of the way
+          // or snap it back.
+          dragEndRef.current(
+            endX - startX,
+            spread.offsetWidth,
+            releaseVelocity(endX, performance.now()),
+          );
         } else if (moved < TAP_SLOP && isDoubleTap()) {
           zoomToward(DOUBLE_TAP_SCALE, endX, endY);
         }
@@ -342,17 +420,77 @@ export function useZoom({
       }
     };
 
+    // ---- Desktop click-to-turn, confined to the outer gutters ----
+
+    /** -1 back, 1 forward, 0 for the page itself. */
+    const edgeAt = (clientX: number): -1 | 0 | 1 => {
+      const rect = spread.getBoundingClientRect();
+      const zone = Math.min(
+        EDGE_ZONE_MAX,
+        Math.max(EDGE_ZONE_MIN, rect.width * EDGE_ZONE_FRACTION),
+      );
+      if (clientX - rect.left < zone) return -1;
+      if (rect.right - clientX < zone) return 1;
+      return 0;
+    };
+
+    // A zone you cannot see is a zone nobody finds, so hovering one arms the
+    // cursor. data-edge, not a class: React owns className on this node.
+    let edgeHover: -1 | 0 | 1 = 0;
+    const setEdgeHover = (dir: -1 | 0 | 1) => {
+      if (dir === edgeHover) return;
+      edgeHover = dir;
+      if (dir === 0) spread.removeAttribute("data-edge");
+      else spread.setAttribute("data-edge", dir < 0 ? "prev" : "next");
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (isMobileRef.current || t.scale > 1) {
+        setEdgeHover(0);
+        return;
+      }
+      setEdgeHover(edgeAt(e.clientX));
+    };
+    const onMouseLeave = () => setEdgeHover(0);
+
     const onClick = (e: MouseEvent) => {
       if (isMobileRef.current) return;
       if (t.scale > 1) return; // while zoomed, a click is the end of a pan
       if ((e.target as Element).closest(`.${hotspotClass}`)) return;
-      const rect = spread.getBoundingClientRect();
-      navigateRef.current(e.clientX - rect.left < rect.width / 2 ? -1 : 1);
+      const dir = edgeAt(e.clientX);
+      if (dir !== 0) navigateRef.current(dir);
     };
 
+    // ---- Keys ----
+
+    // The arrows belong to the reader only while the reader is what you are
+    // looking at. Scrolled away, they are the page's again.
+    let onScreen = false;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        onScreen = entry.isIntersecting;
+      },
+      { threshold: 0.25 },
+    );
+    io.observe(reader);
+
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") navigateRef.current(-1);
-      if (e.key === "ArrowRight") navigateRef.current(1);
+      if (!onScreen) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      // Typing, or driving a control that has its own meaning for the arrows.
+      const target = e.target as HTMLElement | null;
+      if (target?.isContentEditable) return;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        navigateRef.current(-1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        navigateRef.current(1);
+      }
     };
 
     spread.addEventListener("wheel", onWheel, { passive: false });
@@ -363,6 +501,8 @@ export function useZoom({
     spread.addEventListener("touchstart", onTouchStart, { passive: true });
     spread.addEventListener("touchmove", onTouchMove, { passive: false });
     spread.addEventListener("touchend", onTouchEnd, { passive: true });
+    spread.addEventListener("mousemove", onMouseMove);
+    spread.addEventListener("mouseleave", onMouseLeave);
     spread.addEventListener("click", onClick);
     document.addEventListener("keydown", onKeyDown);
 
@@ -370,6 +510,8 @@ export function useZoom({
     // missed listener makes one swipe turn two pages.
     return () => {
       clearTimeout(wheelTimer);
+      io.disconnect();
+      spread.removeAttribute("data-edge");
       spread.removeEventListener("wheel", onWheel);
       spread.removeEventListener("pointerdown", onPointerDown);
       spread.removeEventListener("pointermove", onPointerMove);
@@ -378,6 +520,8 @@ export function useZoom({
       spread.removeEventListener("touchstart", onTouchStart);
       spread.removeEventListener("touchmove", onTouchMove);
       spread.removeEventListener("touchend", onTouchEnd);
+      spread.removeEventListener("mousemove", onMouseMove);
+      spread.removeEventListener("mouseleave", onMouseLeave);
       spread.removeEventListener("click", onClick);
       document.removeEventListener("keydown", onKeyDown);
     };
