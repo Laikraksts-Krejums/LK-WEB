@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { buildPageNumbering } from "@/domain/page";
 import type { ReaderHotspot, ReaderPage } from "@/domain/types";
 import { PageList } from "./PageList";
@@ -363,21 +364,37 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
     });
   }, [isMobile, spreads, resetZoom, slide]);
 
+  // Supersede any turn still in flight when the reader unmounts (e.g. a hotspot
+  // click mid-turn), so its pending settle cannot flushSync a dead component.
+  useEffect(() => {
+    return () => {
+      turnToken.current += 1;
+    };
+  }, []);
+
+  // Kept in sync with the actual state, so ESC (or the OS leaving fullscreen)
+  // keeps the button's label and pressed state honest.
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  useEffect(() => {
+    const sync = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
+
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().catch(() => {});
     } else {
-      document.exitFullscreen();
+      document.exitFullscreen().catch(() => {});
     }
   }, []);
 
   const view = views[current];
-  if (!view) return null;
+  if (!view) return <EmptyState>šim numuram vēl nav lapu.</EmptyState>;
 
   return (
     <div
       className={styles.reader}
-      id="reader"
       ref={readerRef}
       style={{ "--stage-ar": stageAr.toFixed(4) } as React.CSSProperties}
     >
@@ -404,6 +421,7 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
         canPrev={current > 0}
         canNext={current < views.length - 1}
         isZoomed={isZoomed}
+        isFullscreen={isFullscreen}
         onPrev={() => navigate(-1)}
         onNext={() => navigate(1)}
         onZoomIn={zoomIn}

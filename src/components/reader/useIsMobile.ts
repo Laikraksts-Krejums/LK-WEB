@@ -3,13 +3,16 @@
 import { useSyncExternalStore } from "react";
 import { MOBILE_QUERY } from "@/domain/breakpoints";
 
+// One MediaQueryList, not a fresh one per getSnapshot call (useSyncExternalStore
+// calls it on every render). null on the server, where getServerSnapshot is used.
+const mql = typeof window !== "undefined" ? window.matchMedia(MOBILE_QUERY) : null;
+
 function subscribe(onChange: () => void) {
-  const mq = window.matchMedia(MOBILE_QUERY);
-  mq.addEventListener("change", onChange);
-  return () => mq.removeEventListener("change", onChange);
+  mql?.addEventListener("change", onChange);
+  return () => mql?.removeEventListener("change", onChange);
 }
 
-const getSnapshot = () => window.matchMedia(MOBILE_QUERY).matches;
+const getSnapshot = () => mql?.matches ?? false;
 
 /**
  * The server guesses "not mobile" and the client corrects on hydration. That is
