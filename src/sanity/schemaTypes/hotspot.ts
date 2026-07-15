@@ -18,7 +18,7 @@ export const hotspot = defineType({
       name: "pageNumber",
       title: "Page image",
       description:
-        "Which uploaded image this link sits on — its position in the Pages list (1 = the first image). A two-page spread is ONE image, so a link anywhere on it uses that image's number, not the printed page number.",
+        "Which uploaded image this link sits on, its position in the Pages list (1 = the first image). A two-page spread is ONE image, so a link anywhere on it uses that image's number, not the printed page number.",
       type: "number",
       validation: (rule) => rule.required().integer().min(1),
     }),

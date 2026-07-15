@@ -34,7 +34,7 @@ export const r2Image = defineType({
       name: "layout",
       title: "Layout",
       description:
-        "Auto reads the scan itself: an image wider than it is tall is a two-page spread. Override only when a scan lies — e.g. a single page that happens to have been scanned in landscape.",
+        "Auto reads the scan itself: an image wider than it is tall is a two-page spread. Override only when a scan lies, e.g. a single page that happens to have been scanned in landscape.",
       type: "string",
       initialValue: "auto",
       options: {
