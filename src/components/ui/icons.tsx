@@ -67,9 +67,30 @@ export function IconFullscreen({ className }: IconProps) {
 export function IconMenu({ className }: IconProps) {
   return (
     <svg {...svgBase} className={className}>
-      <path d="M4 7 H20" />
-      <path d="M4 12 H20" />
-      <path d="M4 17 H20" />
+      <path d="M4.1 6.7 C8.3 6.2 12.4 7.1 15.8 6.6 C17.6 6.4 18.8 6.7 20 6.5" />
+      <path d="M4 12.1 C7.4 11.7 11.9 12.5 15.4 12 C17.3 11.8 18.7 12.2 20 11.9" />
+      <path d="M4.2 17.4 C8.6 17 13.1 17.7 16.6 17.2 C18 17 19 17.4 19.9 17.2" />
+    </svg>
+  );
+}
+
+/* A single wobbly ink line, drawn to span its box (preserveAspectRatio none, so
+   width follows the element it underlines). Used as the nav hover/active mark
+   and as the menu's hand-drawn separator. */
+export function IconUnderline({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 100 8"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      preserveAspectRatio="none"
+      aria-hidden
+      className={className}
+    >
+      <path d="M1.5 5.2 C16 2.6 31 6.4 46 4.1 C61 1.9 76 6.1 98.5 3.6" />
     </svg>
   );
 }

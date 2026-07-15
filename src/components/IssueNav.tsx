@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { IconButton } from "@/components/ui/IconButton";
 import { Eyebrow } from "@/components/ui/Eyebrow";
-import { IconMenu } from "@/components/ui/icons";
+import { IconMenu, IconUnderline } from "@/components/ui/icons";
+import { clsx } from "clsx";
 import type { IssueSummary } from "@/domain/types";
 
 /**
@@ -72,10 +73,12 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
 
       {open && (
         // No shadow — a crisp ink hairline lifts the panel (Krējums: no shadows).
+        // Shares its chrome (cream-deep fill, ink hairline, xl radius) with the
+        // reader controls capsule so the two read as one family.
         <div
           id="issue-menu"
           role="menu"
-          className="absolute right-0 top-[calc(100%+0.6rem)] max-h-[min(60vh,420px)] min-w-[240px] max-w-[min(320px,calc(100vw-2rem))] animate-panel overflow-y-auto rounded-xl border border-ink bg-cream p-[0.4rem] font-mono motion-reduce:animate-none"
+          className="absolute right-0 top-[calc(100%+0.6rem)] max-h-[min(60vh,420px)] min-w-[240px] max-w-[min(320px,calc(100vw-2rem))] animate-panel overflow-y-auto rounded-xl border border-ink bg-cream-deep p-[0.4rem] font-mono motion-reduce:animate-none"
         >
           <ul className="m-0 list-none p-0">
             {issues.map((issue) => {
@@ -86,7 +89,7 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
                     href={`/numuri/${issue.slug}`}
                     role="menuitem"
                     aria-current={isCurrent ? "page" : undefined}
-                    className="flex items-baseline gap-[0.6rem] rounded-lg px-[0.7rem] py-[0.6rem] text-ink no-underline transition-[background] duration-[140ms] hover:bg-cream-deep motion-reduce:transition-none"
+                    className="group relative flex items-baseline gap-[0.6rem] rounded-lg px-[0.7rem] py-[0.6rem] text-ink no-underline"
                   >
                     <Eyebrow className="flex-none text-orange">
                       nr. {issue.number}
@@ -94,22 +97,32 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
                     <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[0.95rem]">
                       {issue.title}
                     </span>
-                    {isCurrent && (
-                      <span
-                        aria-hidden
-                        className="size-[6px] flex-none rounded-full bg-orange"
-                      />
-                    )}
+                    {/* A hand-drawn line marks the item: always shown (orange)
+                        for the current article, drawn in ink on hover otherwise
+                        — this replaces the old orange dot. */}
+                    <IconUnderline
+                      className={clsx(
+                        "pointer-events-none absolute inset-x-[0.7rem] bottom-[0.28rem] h-[7px] w-auto transition-opacity duration-[140ms] motion-reduce:transition-none",
+                        isCurrent
+                          ? "text-orange opacity-100"
+                          : "text-ink opacity-0 group-hover:opacity-70",
+                      )}
+                    />
                   </Link>
                 </li>
               );
             })}
           </ul>
 
+          {/* Hand-drawn rule instead of a straight hairline border. */}
+          <IconUnderline
+            className="mx-[0.7rem] mt-[0.4rem] block h-[6px] w-[calc(100%-1.4rem)] text-rule"
+          />
+
           <Link
             href="/numuri"
             role="menuitem"
-            className="mt-[0.4rem] block border-t border-rule px-[0.7rem] py-[0.6rem] font-mono text-[0.7rem] font-bold lowercase tracking-[0.12em] text-ink-soft no-underline transition-colors duration-[140ms] hover:text-ink motion-reduce:transition-none"
+            className="block px-[0.7rem] py-[0.6rem] font-serif text-[0.95rem] text-ink-soft no-underline transition-colors duration-[140ms] hover:text-ink motion-reduce:transition-none"
           >
             visi numuri
           </Link>

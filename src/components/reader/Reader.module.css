@@ -294,12 +294,14 @@
   flex-wrap: wrap;
   font-family: var(--font-mono);
 
-  /* Cream capsule behind the glyph-only icons, so they keep contrast over a
+  /* Cream panel behind the glyph-only icons, so they keep contrast over a
      dark page or in fullscreen now that the buttons carry no outline of their
-     own (Krējums sketch language, reader fix 3). */
+     own (Krējums sketch language, reader fix 3). Shares its chrome — cream-deep
+     fill, crisp ink hairline, xl radius — with the issue-nav dropdown so the
+     two read as one family. */
   background: var(--color-cream-deep);
-  border: 1px solid var(--color-rule);
-  border-radius: 999px;
+  border: 1px solid var(--color-ink);
+  border-radius: 0.75rem;
   backdrop-filter: blur(3px);
 
   /* A transformed element paints above in-flow siblings, so a zoomed spread
