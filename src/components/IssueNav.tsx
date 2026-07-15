@@ -71,7 +71,7 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
         <div
           id="issue-menu"
           role="menu"
-          className="absolute right-0 top-[calc(100%+0.6rem)] max-h-[min(60vh,420px)] min-w-[240px] max-w-[min(320px,calc(100vw-2rem))] animate-panel overflow-y-auto rounded-xl border border-ink bg-cream-deep p-[0.4rem] font-mono motion-reduce:animate-none"
+          className="absolute right-0 top-[calc(100%+0.6rem)] z-30 max-h-[min(60vh,420px)] min-w-[240px] max-w-[min(320px,calc(100vw-2rem))] animate-panel overflow-y-auto rounded-xl border border-ink bg-cream-deep p-[0.4rem] font-mono motion-reduce:animate-none"
         >
           <ul className="m-0 list-none p-0">
             {issues.map((issue) => {

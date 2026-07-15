@@ -2,12 +2,14 @@ import Link from "next/link";
 import { IssueNav } from "./IssueNav";
 import type { IssueSummary } from "@/domain/types";
 
-// Brand chrome: static files, not CMS content. z-20 for the same reason the
-// reader controls carry one — a zoomed spread is transformed and would
-// otherwise paint over an open issue menu.
+// Brand chrome: static files, not CMS content. No stacking context on the
+// header itself, so the logo + burger stay in DOM order *below* the page that
+// follows them — a zoomed spread (or browser zoom) then paints over the chrome
+// instead of the chrome covering the page. The open issue menu carries its own
+// z-index (see IssueNav) so it still floats above the page.
 export function Masthead({ issues }: { issues: IssueSummary[] }) {
   return (
-    <header className="relative z-20 mb-[clamp(1rem,2vw,1.5rem)] flex items-center justify-between gap-4 mobile:gap-2">
+    <header className="relative mb-[clamp(1rem,2vw,1.5rem)] flex items-center justify-between gap-4 mobile:gap-2">
       <Link href="/" aria-label="krējums." className="group">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
