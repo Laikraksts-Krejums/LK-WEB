@@ -191,10 +191,15 @@
   display: block;
   width: 100%;
   height: 100%;
-  /* `contain`, never `cover`. The box already carries the scan's ratio, so this
-     is a no-op in the normal case — and a safe letterbox on white, rather than a
-     crop, if the stored dimensions are ever missing or stale. */
-  object-fit: contain;
+  /* `cover`, not `contain`. The box already carries the scan's ratio, so both
+     are a no-op on paper — but `--page-ar` is rounded to 4 decimals and Safari
+     rounds subpixel layout its own way, so `contain` fits the image a fraction
+     of a pixel short and parks the whole gap at the TOP, where .page's white
+     background peeks through as a hairline over the scan. `cover` fills the box
+     instead (the <1px overflow is clipped by .page's overflow:hidden) and still
+     preserves the ratio, so there is no distortion — only the safe-letterbox
+     signal for stale/missing dimensions is traded away. */
+  object-fit: cover;
 }
 
 /* One half of a spread — mobile only (views.ts: buildMobileViews). The window
