@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getAllIssues } from "@/lib/issues";
+import { getAllIssues } from "@/server/issues";
 import { SITE_URL } from "@/lib/site";
 
 export const revalidate = 300;

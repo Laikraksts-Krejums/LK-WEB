@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import type { IssueSummary } from "@/lib/issues";
+import type { IssueSummary } from "@/domain/types";
 import styles from "./IssueNav.module.css";
 
 function IconMenu() {

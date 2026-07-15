@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { IssueSummary } from "@/lib/issues";
+import type { IssueSummary } from "@/domain/types";
 import styles from "./IssueCard.module.css";
 
 /** Roman numerals for the issue number — the magazine numbers itself I, II, … */

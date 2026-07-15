@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { IssueNav } from "./IssueNav";
-import type { IssueSummary } from "@/lib/issues";
+import type { IssueSummary } from "@/domain/types";
 import styles from "./Masthead.module.css";
 
 /** Brand chrome: static files, not CMS content. */

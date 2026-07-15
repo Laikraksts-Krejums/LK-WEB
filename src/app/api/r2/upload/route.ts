@@ -1,5 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
+import { issueObjectKey } from "@/domain/keys";
 import { apiVersion, dataset, projectId } from "@/sanity/env";
 
 /**
@@ -101,7 +102,7 @@ export async function POST(request: Request) {
   }
 
   // Minted here, never taken from the client.
-  const key = `issues/${issueId}/${crypto.randomUUID()}.${EXT_BY_TYPE[contentType]}`;
+  const key = issueObjectKey(issueId, EXT_BY_TYPE[contentType]);
 
   const { env } = getCloudflareContext();
   const bucket = env.PAGES_BUCKET;

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { getSiteSettings } from "@/lib/issues";
+import { getSiteSettings } from "@/server/issues";
 import { R2_PUBLIC_ORIGIN } from "@/lib/r2";
 import { SITE_DEFAULTS, SITE_NAME, SITE_URL } from "@/lib/site";
 

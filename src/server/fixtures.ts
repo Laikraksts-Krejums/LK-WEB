@@ -1,5 +1,7 @@
-import type { Issue } from "./types";
+import type { Issue } from "@/domain/types";
 
+// Placeholder art for local work only. Loaded via a dynamic import gated on
+// NODE_ENV (see ./issues), so it never enters the production bundle.
 const PAGE_COUNT = 18;
 
 export const DEV_ISSUE: Issue = {

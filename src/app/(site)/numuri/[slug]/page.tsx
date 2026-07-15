@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Reader } from "@/components/reader/Reader";
-import { getIssueBySlug } from "@/lib/issues";
+import { getIssueBySlug } from "@/server/issues";
 import { client } from "@/sanity/client";
 import { ISSUE_SLUGS_QUERY } from "@/sanity/queries";
 

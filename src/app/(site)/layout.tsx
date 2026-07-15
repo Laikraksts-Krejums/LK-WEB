@@ -1,6 +1,6 @@
 import styles from "../layout.module.css";
 import { Masthead } from "@/components/Masthead";
-import { getAllIssues, getSiteLinkUrls, getSiteSettings } from "@/lib/issues";
+import { getAllIssues, getSiteLinkUrls, getSiteSettings } from "@/server/issues";
 import { SITE_URL } from "@/lib/site";
 
 export default async function SiteLayout({

@@ -2,12 +2,13 @@
 
 import { useCallback, useRef, useState, type RefObject } from "react";
 import {
+  boxToStyle,
   moveBox,
   pointerToPercent,
   resizeEdge,
   type Edge,
-  type HotspotBoxValue,
-} from "./hotspotMath";
+  type HotspotBox as HotspotBoxValue,
+} from "@/domain/box";
 
 type DragState =
   | { mode: "move"; startX: number; startY: number; startBox: HotspotBoxValue }
@@ -110,10 +111,7 @@ export function HotspotBox({
       onPointerUp={handlePointerUp}
       style={{
         position: "absolute",
-        left: `${current.left}%`,
-        right: `${current.right}%`,
-        top: `${current.top}%`,
-        height: `${current.height}%`,
+        ...boxToStyle(current),
         boxSizing: "border-box",
         border: selected ? "2px solid #e8623c" : "2px dashed rgba(232, 98, 60, 0.7)",
         background: selected ? "rgba(232, 98, 60, 0.22)" : "rgba(232, 98, 60, 0.12)",

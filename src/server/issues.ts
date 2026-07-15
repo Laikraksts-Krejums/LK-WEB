@@ -1,4 +1,8 @@
 import "server-only";
+import { isSpreadImage } from "@/domain/page";
+import type { Issue, IssueSummary, ReaderHotspot } from "@/domain/types";
+import { r2PublicUrl } from "@/lib/r2";
+import { SITE_DEFAULTS } from "@/lib/site";
 import { client } from "@/sanity/client";
 import { urlForImage } from "@/sanity/image";
 import {
@@ -8,11 +12,6 @@ import {
   SITE_LINK_URLS_QUERY,
   SITE_SETTINGS_QUERY,
 } from "@/sanity/queries";
-import { DEV_ISSUE } from "./fixtures";
-import { isSpreadImage } from "./pageLayout";
-import { r2PublicUrl } from "./r2";
-import { SITE_DEFAULTS } from "./site";
-import type { Issue, ReaderHotspot } from "./types";
 
 /** Honoured on Cloudflare by the incremental cache + queue in open-next.config.ts. */
 export const REVALIDATE_SECONDS = 300;
@@ -74,7 +73,6 @@ export async function getSiteLinkUrls(): Promise<string[]> {
 
 function resolveHotspot(spot: SanityHotspot): ReaderHotspot | null {
   const href = spot.target === "custom" ? spot.customHref : spot.linkHref;
-
   if (!href) return null; // the link it points at hasn't been filled in yet
 
   return {
@@ -97,15 +95,11 @@ function toIssue(doc: SanityIssue): Issue {
     blurb: doc.blurb,
     coverUrl: doc.coverImage ? urlForImage(doc.coverImage, 800) : undefined,
     pages: (doc.pages ?? []).map((page, i) => {
-      // The raw dimensions, not the defaults below — so "unmeasured means single"
-      // is a decision rather than an accident of 1400 < 1980.
       const isSpread = isSpreadImage(page.layout, page.width, page.height);
-
       return {
         src: r2PublicUrl(page.key),
-        // The fallback box has to match what we just decided the page IS: an
-        // unmeasured image an editor marked as a spread would otherwise get a
-        // portrait box and render letterboxed inside it.
+        // The fallback box must match what we decided the page IS: an unmeasured
+        // image marked as a spread would otherwise get a portrait box.
         width: page.width || (isSpread ? 2800 : 1400),
         height: page.height || 1980,
         alt: page.alt ?? `lapa ${i + 1}`,
@@ -118,9 +112,12 @@ function toIssue(doc: SanityIssue): Issue {
   };
 }
 
-/** Placeholder art is for local work only; production shows an empty state. */
-function devFallback(): Issue | null {
-  return process.env.NODE_ENV === "production" ? null : DEV_ISSUE;
+/** Placeholder art for local work only; production shows an empty state. The
+    dynamic import keeps the fixtures out of the production bundle entirely. */
+async function devFallback(): Promise<Issue | null> {
+  if (process.env.NODE_ENV === "production") return null;
+  const { DEV_ISSUE } = await import("@/server/fixtures");
+  return DEV_ISSUE;
 }
 
 export async function getLatestIssue(): Promise<Issue | null> {
@@ -137,18 +134,9 @@ export async function getIssueBySlug(slug: string): Promise<Issue | null> {
     .catch(() => null);
 
   if (doc) return toIssue(doc);
-  const fallback = devFallback();
+  const fallback = await devFallback();
   return fallback && fallback.slug === slug ? fallback : null;
 }
-
-export type IssueSummary = {
-  number: number;
-  title: string;
-  slug: string;
-  publishedAt?: string;
-  blurb?: string;
-  coverUrl?: string;
-};
 
 export async function getAllIssues(): Promise<IssueSummary[]> {
   const docs: SanityIssue[] = await client
@@ -156,18 +144,8 @@ export async function getAllIssues(): Promise<IssueSummary[]> {
     .catch(() => []);
 
   if (docs.length === 0) {
-    const fallback = devFallback();
-    return fallback
-      ? [
-          {
-            number: fallback.number,
-            title: fallback.title,
-            slug: fallback.slug,
-            publishedAt: fallback.publishedAt,
-            coverUrl: fallback.coverUrl,
-          },
-        ]
-      : [];
+    const fallback = await devFallback();
+    return fallback ? [toSummary(fallback)] : [];
   }
 
   return docs.map((doc) => ({
@@ -178,4 +156,15 @@ export async function getAllIssues(): Promise<IssueSummary[]> {
     blurb: doc.blurb,
     coverUrl: doc.coverImage ? urlForImage(doc.coverImage, 800) : undefined,
   }));
+}
+
+function toSummary(issue: Issue): IssueSummary {
+  return {
+    number: issue.number,
+    title: issue.title,
+    slug: issue.slug,
+    publishedAt: issue.publishedAt,
+    blurb: issue.blurb,
+    coverUrl: issue.coverUrl,
+  };
 }

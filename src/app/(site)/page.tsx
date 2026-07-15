@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Reader } from "@/components/reader/Reader";
-import { getLatestIssue } from "@/lib/issues";
+import { getLatestIssue } from "@/server/issues";
 
 export const revalidate = 300;
 

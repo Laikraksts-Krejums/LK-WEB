@@ -1,5 +1,5 @@
 import { defineField, defineType } from "sanity";
-import { isSpreadImage } from "@/lib/pageLayout";
+import { isSpreadImage } from "@/domain/page";
 import { r2PublicUrl } from "@/lib/r2";
 
 /**

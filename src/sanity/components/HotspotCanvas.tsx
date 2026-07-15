@@ -5,10 +5,11 @@ import { r2PublicUrl } from "@/lib/r2";
 import { HotspotBox } from "./HotspotBox";
 import {
   boxFromPoints,
+  boxToStyle,
   pointerToPercent,
   MIN_SIZE_PCT,
-  type HotspotBoxValue,
-} from "./hotspotMath";
+  type HotspotBox as HotspotBoxValue,
+} from "@/domain/box";
 
 export type CanvasHotspot = HotspotBoxValue & { _key: string; label?: string };
 
@@ -154,10 +155,7 @@ export function HotspotCanvas({
           <div
             style={{
               position: "absolute",
-              left: `${draft.left}%`,
-              right: `${draft.right}%`,
-              top: `${draft.top}%`,
-              height: `${draft.height}%`,
+              ...boxToStyle(draft),
               boxSizing: "border-box",
               border: "2px dashed #2276fc",
               background: "rgba(34, 118, 252, 0.15)",

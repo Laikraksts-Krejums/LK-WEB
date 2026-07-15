@@ -2,14 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { buildPageNumbering } from "@/lib/pageLayout";
-import type { ReaderHotspot, ReaderPage } from "@/lib/types";
+import { buildPageNumbering } from "@/domain/page";
+import type { ReaderHotspot, ReaderPage } from "@/domain/types";
 import { PageList } from "./PageList";
 import { ReaderControls } from "./ReaderControls";
 import { useBackgroundDecode } from "./useBackgroundDecode";
 import { useIsMobile } from "./useIsMobile";
 import { useZoom } from "./useZoom";
-import { buildViews, findViewIndex, pageRangeLabel } from "./views";
+import { buildViews, findViewIndex, pageRangeLabel } from "@/domain/views";
 import styles from "./Reader.module.css";
 
 type ReaderProps = {

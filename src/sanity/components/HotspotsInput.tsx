@@ -9,9 +9,9 @@ import {
   type ArrayOfObjectsInputProps,
 } from "sanity";
 import { randomKey } from "@sanity/util/content";
-import { buildPageNumbering, isSpreadImage } from "@/lib/pageLayout";
+import { buildPageNumbering, isSpreadImage } from "@/domain/page";
 import { HotspotCanvas, type CanvasHotspot } from "./HotspotCanvas";
-import type { HotspotBoxValue } from "./hotspotMath";
+import type { HotspotBox as HotspotBoxValue } from "@/domain/box";
 
 type PageValue = {
   _key: string;

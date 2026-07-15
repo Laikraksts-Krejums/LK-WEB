@@ -1,6 +1,6 @@
-import type { ReaderHotspot, ReaderPage } from "@/lib/types";
+import type { ReaderHotspot, ReaderPage } from "@/domain/types";
 import { Hotspot } from "./Hotspot";
-import type { View } from "./views";
+import type { View } from "@/domain/views";
 import styles from "./Reader.module.css";
 
 type PageListProps = {

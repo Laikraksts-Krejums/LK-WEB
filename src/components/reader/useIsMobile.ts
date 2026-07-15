@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { MOBILE_QUERY } from "./views";
+import { MOBILE_QUERY } from "@/domain/breakpoints";
 
 function subscribe(onChange: () => void) {
   const mq = window.matchMedia(MOBILE_QUERY);

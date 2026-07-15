@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { IssueCard } from "@/components/IssueCard";
-import { getAllIssues } from "@/lib/issues";
+import { getAllIssues } from "@/server/issues";
 import styles from "@/components/IssueCard.module.css";
 
 // Must be a literal: Next reads route segment config statically, so an
