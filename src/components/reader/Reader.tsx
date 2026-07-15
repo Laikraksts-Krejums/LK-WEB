@@ -137,6 +137,26 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
 
   useBackgroundDecode(imgRefs, ready);
 
+  // The background sweep decodes pages in order, one at a time behind idle
+  // callbacks — a fast reader can outrun it and turn to a page whose bitmap is
+  // not resident yet, flashing the white .page box for the length of the swipe.
+  // So whenever the view changes, force the immediate neighbours (the only pages
+  // one turn can reach) to the front of the queue. Idempotent with the sweep:
+  // decode() on an already-decoded image resolves at once and costs nothing.
+  useEffect(() => {
+    if (!ready) return;
+    const targets = new Set<number>();
+    for (let v = current - 1; v <= current + 1; v++) {
+      views[v]?.pages.forEach((i) => targets.add(i));
+    }
+    targets.forEach((i) => {
+      const img = imgRefs.current[i];
+      if (!img) return;
+      img.loading = "eager";
+      img.decode?.().catch(() => {});
+    });
+  }, [current, views, ready]);
+
   // Read by native listeners in useZoom, so these must be stable and never
   // stale: state comes from refs, not closures.
   const currentRef = useRef(0);
