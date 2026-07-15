@@ -1,0 +1,8 @@
+/* Sanity Studio styles itself; this only supplies the margin reset that
+   Preflight would give, since globals.css (and Tailwind) never load here. */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
