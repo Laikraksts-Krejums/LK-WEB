@@ -29,6 +29,14 @@ export const issue = defineType({
       validation: (rule) => rule.required(),
     }),
     defineField({
+      name: "edition",
+      title: "Edition label",
+      description:
+        'Optional. Shown on the archive cards instead of "numurs I". For example: "pavasaris 2026". Leave empty to fall back to the issue number.',
+      type: "string",
+      group: "content",
+    }),
+    defineField({
       name: "slug",
       title: "URL slug",
       type: "slug",

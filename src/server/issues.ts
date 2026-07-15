@@ -39,6 +39,7 @@ type SanityHotspot = {
 type SanityIssue = {
   number: number;
   title: string;
+  edition?: string;
   slug: string;
   publishedAt?: string;
   blurb?: string;
@@ -90,6 +91,7 @@ function toIssue(doc: SanityIssue): Issue {
   return {
     number: doc.number,
     title: doc.title,
+    edition: doc.edition,
     slug: doc.slug,
     publishedAt: doc.publishedAt,
     blurb: doc.blurb,
@@ -151,6 +153,7 @@ export async function getAllIssues(): Promise<IssueSummary[]> {
   return docs.map((doc) => ({
     number: doc.number,
     title: doc.title,
+    edition: doc.edition,
     slug: doc.slug,
     publishedAt: doc.publishedAt,
     blurb: doc.blurb,
@@ -162,6 +165,7 @@ function toSummary(issue: Issue): IssueSummary {
   return {
     number: issue.number,
     title: issue.title,
+    edition: issue.edition,
     slug: issue.slug,
     publishedAt: issue.publishedAt,
     blurb: issue.blurb,

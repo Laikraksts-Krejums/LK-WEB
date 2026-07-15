@@ -85,7 +85,7 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
                     className="group relative flex items-baseline gap-[0.6rem] rounded-lg px-[0.7rem] py-[0.6rem] text-ink no-underline"
                   >
                     <Eyebrow className="flex-none text-orange">
-                      nr. {issue.number}
+                      {issue.edition ?? `nr. ${issue.number}`}
                     </Eyebrow>
  
                     <span className="flex min-w-0 flex-col items-start">

@@ -25,6 +25,8 @@ export type ReaderHotspot = HotspotBox & {
 export type Issue = {
   number: number;
   title: string;
+  // Optional editorial label, e.g. "pavasaris 2026", shown instead of "numurs I".
+  edition?: string;
   slug: string;
   publishedAt?: string;
   blurb?: string;

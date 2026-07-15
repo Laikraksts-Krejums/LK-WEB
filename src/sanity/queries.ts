@@ -3,6 +3,7 @@ import { defineQuery } from "next-sanity";
 const ISSUE_FIELDS = /* groq */ `
   number,
   title,
+  edition,
   "slug": slug.current,
   publishedAt,
   blurb,
@@ -35,6 +36,7 @@ export const ALL_ISSUES_QUERY = defineQuery(`
   *[_type == "issue"] | order(number desc){
     number,
     title,
+    edition,
     "slug": slug.current,
     publishedAt,
     blurb,

@@ -47,7 +47,7 @@ export function IssueCard({ issue }: { issue: IssueSummary }) {
           />
           <div className="mt-[0.9rem] text-center">
             <Eyebrow className="text-[0.75rem] tracking-[0.15em] text-orange">
-              numurs {roman(issue.number)}
+              {issue.edition ?? `numurs ${roman(issue.number)}`}
             </Eyebrow>
             <p className="mt-1 font-serif text-[1.05rem] text-ink">{issue.title}</p>
             {year && (
