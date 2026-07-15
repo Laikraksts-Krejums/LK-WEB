@@ -48,12 +48,3 @@ next-env.d.ts
 
 # keep the documented template in git
 !.env.example
-
-# design-sync (see /design-sync skill) — staged converter scripts, build
-# output, and machine state; .design-sync/ durable set (config, notes,
-# conventions, previews, overrides) IS committed
-/.ds-sync/
-/ds-bundle/
-/.design-sync/.cache/
-/.design-sync/learnings/
-/.design-sync/node_modules
