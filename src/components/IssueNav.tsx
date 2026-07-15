@@ -9,11 +9,7 @@ import { IconMenu, IconUnderline } from "@/components/ui/icons";
 import { clsx } from "clsx";
 import type { IssueSummary } from "@/domain/types";
 
-/**
- * The issue list is ordered `number desc`, so issues[0] is the one the homepage
- * renders — that is what makes "/" resolvable to a current issue without the
- * server telling us which one it picked.
- */
+
 function activeSlug(pathname: string, issues: IssueSummary[]): string | null {
   if (pathname === "/") return issues[0]?.slug ?? null;
   const match = /^\/numuri\/([^/]+)/.exec(pathname);
@@ -27,8 +23,7 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
   const navRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  // Any navigation closes the panel, including back/forward — which fire no
-  // click of ours, so the panel would otherwise survive the trip.
+
   if (lastPath !== pathname) {
     setLastPath(pathname);
     setOpen(false);
@@ -72,9 +67,7 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
       </IconButton>
 
       {open && (
-        // No shadow — a crisp ink hairline lifts the panel (Krējums: no shadows).
-        // Shares its chrome (cream-deep fill, ink hairline, xl radius) with the
-        // reader controls capsule so the two read as one family.
+        
         <div
           id="issue-menu"
           role="menu"
@@ -94,17 +87,14 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
                     <Eyebrow className="flex-none text-orange">
                       nr. {issue.number}
                     </Eyebrow>
-                    {/* The title shrinks to its own text, so the hand-drawn
-                        underline nested inside it spans exactly the text width.
-                        The line marks the item: always shown (orange) for the
-                        current article, drawn in ink on hover otherwise — this
-                        replaces the old orange dot. The bottom padding keeps the
-                        line clear of the glyphs and inside the clip box. */}
-                    <span className="relative min-w-0 overflow-hidden text-ellipsis whitespace-nowrap pb-[0.28rem] font-serif text-[0.95rem]">
-                      {issue.title}
+ 
+                    <span className="flex min-w-0 flex-col items-start">
+                      <span className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[0.95rem]">
+                        {issue.title}
+                      </span>
                       <IconUnderline
                         className={clsx(
-                          "pointer-events-none absolute inset-x-0 bottom-0 h-[6px] w-full transition-opacity duration-[140ms] motion-reduce:transition-none",
+                          "pointer-events-none mt-[2px] h-[6px] w-full transition-opacity duration-[140ms] motion-reduce:transition-none",
                           isCurrent
                             ? "text-orange opacity-100"
                             : "text-ink opacity-0 group-hover:opacity-70",
@@ -117,7 +107,6 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
             })}
           </ul>
 
-          {/* Hand-drawn rule instead of a straight hairline border. */}
           <IconUnderline
             className="mx-[0.7rem] mt-[0.4rem] block h-[6px] w-[calc(100%-1.4rem)] text-rule"
           />
