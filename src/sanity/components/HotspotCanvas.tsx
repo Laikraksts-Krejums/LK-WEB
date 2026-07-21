@@ -15,8 +15,7 @@ export type CanvasHotspot = HotspotBoxValue & { _key: string; label?: string };
 
 const DRAW_THRESHOLD_PX = 6;
 
-/* Fixed height: a landscape and a portrait page occupy the same vertical space,
-   so paging between them never moves the controls below the canvas. */
+// Fixed so paging between a landscape and portrait page never shifts the controls.
 const CANVAS_HEIGHT = "70vh";
 
 type DrawState = {
@@ -27,8 +26,6 @@ type DrawState = {
   y0: number;
 };
 
-/** The wrapper is inline-block with no explicit size, so it hugs the image's
-    rendered box — keeping containerRef's rect a valid coordinate space for drawing. */
 export function HotspotCanvas({
   page,
   hotspots,
@@ -79,8 +76,7 @@ export function HotspotCanvas({
       const state = drawRef.current;
       drawRef.current = null;
       (e.currentTarget as Element).releasePointerCapture(e.pointerId);
-      // Read `draft` directly, not in a setDraft updater: StrictMode may invoke
-      // updaters twice, which would fire onCreate — a real patch — twice.
+      // Read `draft` directly, not in a setDraft updater — StrictMode double-fires it.
       if (state?.drawing && draft) {
         const width = 100 - draft.left - draft.right;
         if (width >= MIN_SIZE_PCT && draft.height >= MIN_SIZE_PCT) {
@@ -97,8 +93,7 @@ export function HotspotCanvas({
       style={{
         display: "flex",
         justifyContent: "center",
-        // `center`, not the default `stretch`: the container must keep hugging
-        // the image for its bounding rect to stay a valid coordinate space.
+        // center, not stretch: the container must hug the image for its rect to stay valid.
         alignItems: "center",
         height: CANVAS_HEIGHT,
       }}

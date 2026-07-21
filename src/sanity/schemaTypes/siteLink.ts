@@ -1,7 +1,5 @@
 import { defineField, defineType } from "sanity";
 
-/** A named, reusable URL: updating it here updates every hotspot that points at
-    it. Not a singleton — create as many as needed. */
 export const siteLink = defineType({
   name: "siteLink",
   title: "Link",

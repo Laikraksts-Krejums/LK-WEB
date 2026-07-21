@@ -16,8 +16,7 @@ export type UploadProgress = {
   current?: string;
 };
 
-/** "name (3).jpg" → ["name", 3]; no suffix is copy 0, which keeps WhatsApp's
-    first image ahead of its "(1)" copy instead of behind all ten. */
+// "name (3).jpg" → ["name", 3]; keeps WhatsApp's first image ahead of its "(1)" copy.
 function orderKey(filename: string): [string, number] {
   const dot = filename.lastIndexOf(".");
   const stem = dot > 0 ? filename.slice(0, dot) : filename;
@@ -25,8 +24,6 @@ function orderKey(filename: string): [string, number] {
   return copy ? [copy[1], Number(copy[2])] : [stem, 0];
 }
 
-/** Best-effort only — filenames may carry no page order at all, so the Studio's
- *  drag-to-reorder stays the source of truth. */
 function byReadingOrder(a: File, b: File): number {
   const [aStem, aCopy] = orderKey(a.name);
   const [bStem, bCopy] = orderKey(b.name);
@@ -35,7 +32,6 @@ function byReadingOrder(a: File, b: File): number {
   );
 }
 
-/** Measured before upload so the reader can reserve space. */
 async function measure(file: File): Promise<{ width: number; height: number }> {
   try {
     const bitmap = await createImageBitmap(file);
@@ -47,7 +43,6 @@ async function measure(file: File): Promise<{ width: number; height: number }> {
   }
 }
 
-/** Uploads to R2 via our own same-origin route, authorised by the Studio's token. */
 export function useR2Upload(issueId: string) {
   const client = useClient({ apiVersion: "2024-10-01" });
   const [progress, setProgress] = useState<UploadProgress | null>(null);
@@ -67,8 +62,7 @@ export function useR2Upload(issueId: string) {
 
       setProgress({ total: ordered.length, done: 0 });
 
-      // finally, not just success: a thrown upload used to leave `progress` set,
-      // which the input reads as busy — bricking the dropzone until a reload.
+      // finally, not just success: a thrown upload leaving `progress` set bricks the dropzone.
       try {
         for (const [i, file] of ordered.entries()) {
           setProgress({ total: ordered.length, done: i, current: file.name });

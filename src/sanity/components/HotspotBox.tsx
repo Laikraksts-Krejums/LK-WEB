@@ -21,8 +21,7 @@ const EDGES: { edge: Edge; style: React.CSSProperties; cursor: string }[] = [
   { edge: "e", style: { right: -4, top: 0, bottom: 0, width: 8 }, cursor: "ew-resize" },
 ];
 
-/** Draggable/resizable overlay rectangle. Drag state stays local until pointerup,
-    so a gesture never floods the form's patch channel with intermediate patches. */
+// Drag state stays local until pointerup, so a gesture doesn't flood the patch channel.
 export function HotspotBox({
   box,
   label,

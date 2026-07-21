@@ -40,13 +40,11 @@ function hasPlacement(item: HotspotItem): item is HotspotItem & CanvasHotspot {
   );
 }
 
-/** Canvas instead of blind % entry: draw to create, drag/resize to move. On the
-    ARRAY so one page image serves several hotspots; other fields keep renderDefault. */
+// On the ARRAY, not the item, so one page image serves several hotspots.
 export function HotspotsInput(props: ArrayOfObjectsInputProps) {
   const { value, onChange, renderDefault } = props;
   const pagesValue = useFormValue(["pages"]) as PageValue[] | undefined;
-  // The `?? []` would otherwise mint a new array every render and re-run every
-  // memo below it.
+  // Memoised so the `?? []` doesn't mint a new array every render.
   const pages = useMemo(() => pagesValue ?? [], [pagesValue]);
   const items = useMemo(() => (value as HotspotItem[] | undefined) ?? [], [value]);
 
@@ -57,8 +55,7 @@ export function HotspotsInput(props: ArrayOfObjectsInputProps) {
 
   const page = pages[currentPage - 1];
 
-  // The paginator addresses IMAGES (as does hotspot.pageNumber); an editor counts
-  // printed pages, and a spread makes the two diverge — show both.
+  // Show both image and printed numbering; a spread makes them diverge.
   const numbering = useMemo(
     () =>
       buildPageNumbering(

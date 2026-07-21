@@ -4,7 +4,6 @@
    max-* emits strict `width < 780px`) — keep the two 780s in sync. */
 @custom-variant mobile (@media (max-width: 780px));
 
-/* `.shell` gets tighter padding when an ancestor is fullscreen. */
 @custom-variant in-fullscreen (:fullscreen &);
 
 /* `static` keeps every token in :root even when Tailwind's scanner cannot see
@@ -49,13 +48,11 @@
     background: var(--color-cream);
     color: var(--color-ink);
     font-family: var(--font-serif);
-    /* Not in Preflight — carry them over explicitly. */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Paper grain multiplied onto the cream; sits BEHIND content so scans and
-     photographs paint above it and stay clean. */
+  /* Paper grain, behind content so scans paint above it. */
   body::before {
     content: "";
     position: fixed;
