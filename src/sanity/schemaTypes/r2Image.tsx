@@ -2,10 +2,8 @@ import { defineField, defineType } from "sanity";
 import { isSpreadImage } from "@/domain/page";
 import { r2PublicUrl } from "@/lib/r2";
 
-/**
- * A pointer to a page image in R2 — Sanity meters bandwidth, R2 egress is free.
- * `key` is written by the server on upload; editors never type it.
- */
+/** A pointer to a page image in R2 (Sanity meters bandwidth, R2 egress is free).
+    `key` is written by the server on upload; editors never type it. */
 export const r2Image = defineType({
   name: "r2Image",
   title: "Page",
@@ -52,12 +50,6 @@ export const r2Image = defineType({
       name: "originalFilename",
       title: "Filename",
       type: "string",
-      readOnly: true,
-    }),
-    defineField({
-      name: "size",
-      title: "Size (bytes)",
-      type: "number",
       readOnly: true,
     }),
     defineField({

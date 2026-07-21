@@ -2,11 +2,7 @@ import Link from "next/link";
 import { IssueNav } from "./IssueNav";
 import type { IssueSummary } from "@/domain/types";
 
-// Brand chrome: static files, not CMS content. No stacking context on the
-// header itself, so the logo + burger stay in DOM order *below* the page that
-// follows them — a zoomed spread (or browser zoom) then paints over the chrome
-// instead of the chrome covering the page. The open issue menu carries its own
-// z-index (see IssueNav) so it still floats above the page.
+// No stacking context here — a zoomed spread must paint over the chrome.
 export function Masthead({ issues }: { issues: IssueSummary[] }) {
   return (
     <header className="relative mb-[clamp(1rem,2vw,1.5rem)] flex items-center justify-between gap-4 mobile:gap-2">

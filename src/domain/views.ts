@@ -1,17 +1,8 @@
 import type { PageNumbering } from "./page";
 
-/**
- * A view is what the stage shows at once, addressed by IMAGE INDEX (not printed
- * page number). `half` shows one side of a spread scan: mobile splits a two-page
- * opening back into its two printed pages, because a whole spread on a phone is
- * unreadable without zooming every page. Desktop never sets it.
- */
+/** half: mobile shows one side of a spread scan; desktop never sets it. */
 export type View = { pages: number[]; half?: "left" | "right" };
 
-/**
- * A spread already IS an opening, so it gets a view to itself: pairing it with a
- * neighbour would show three pages at once. Front and back cover stay solo.
- */
 function buildDesktopViews(spreads: readonly boolean[]): View[] {
   const count = spreads.length;
   if (count <= 0) return [];
@@ -43,12 +34,6 @@ function buildDesktopViews(spreads: readonly boolean[]): View[] {
   return views;
 }
 
-/**
- * One printed page per view: a spread splits into its two halves. Still ONE
- * image and one <img> — PageList slides it under a half-width window — so this
- * costs no extra request. The split is a clean 50%: a two-page scan is two equal
- * pages and the gutter is its centre by construction.
- */
 function buildMobileViews(spreads: readonly boolean[]): View[] {
   return spreads.flatMap((spread, i) =>
     spread

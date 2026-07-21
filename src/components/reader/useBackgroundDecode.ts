@@ -6,7 +6,6 @@ type IdleWindow = Window & {
   requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
 };
 
-/** Runs `fn` once the document has finished loading. */
 function afterLoad(fn: () => void): () => void {
   if (document.readyState === "complete") {
     const id = setTimeout(fn, 0);
@@ -16,13 +15,7 @@ function afterLoad(fn: () => void): () => void {
   return () => window.removeEventListener("load", fn);
 }
 
-/**
- * Pulls every page into memory so showing one later is a paint, not a fetch and
- * a decode — that is what makes flipping instant.
- *
- * It waits for the load event first. An issue is several megabytes of scans, and
- * starting them with the document starves the hero image, which is the LCP.
- */
+/** Decodes every page ahead of time; waits for `load` so the scans don't starve the LCP hero. */
 export function useBackgroundDecode(
   imgRefs: RefObject<(HTMLImageElement | null)[]>,
   enabled: boolean,
@@ -41,9 +34,7 @@ export function useBackgroundDecode(
         return;
       }
 
-      // A lazy image inside a display:none container never loads, and decode()
-      // will not force it — it just rejects. Promoting to eager is what starts
-      // the fetch. Sequential, so pages still arrive one at a time.
+      // A lazy image inside display:none never loads; eager is what starts the fetch.
       img.loading = "eager";
 
       const decoded: Promise<unknown> = img.decode

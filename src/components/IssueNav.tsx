@@ -9,7 +9,6 @@ import { IconMenu, IconUnderline } from "@/components/ui/icons";
 import { clsx } from "clsx";
 import type { IssueSummary } from "@/domain/types";
 
-
 function activeSlug(pathname: string, issues: IssueSummary[]): string | null {
   if (pathname === "/") return issues[0]?.slug ?? null;
   const match = /^\/numuri\/([^/]+)/.exec(pathname);
@@ -22,7 +21,6 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
   const [lastPath, setLastPath] = useState(pathname);
   const navRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-
 
   if (lastPath !== pathname) {
     setLastPath(pathname);
@@ -67,7 +65,6 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
       </IconButton>
 
       {open && (
-        
         <div
           id="issue-menu"
           role="menu"

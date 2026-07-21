@@ -1,11 +1,7 @@
 import { defineField, defineType } from "sanity";
 
-/**
- * A named, reusable URL. Hotspots reference these instead of each storing
- * their own copy, so updating e.g. the Instagram handle here updates every
- * hotspot that points at it. Not a singleton: create as many as you need
- * (multiple Instagram accounts, a press email, a merch store, ...).
- */
+/** A named, reusable URL: updating it here updates every hotspot that points at
+    it. Not a singleton — create as many as needed. */
 export const siteLink = defineType({
   name: "siteLink",
   title: "Link",

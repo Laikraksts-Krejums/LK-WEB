@@ -1,8 +1,5 @@
 import { clsx } from "clsx";
 
-// The one icon button on the site (reader controls + issue menu), so they
-// cannot drift apart. Krējums sketch language: the glyph stands alone — no
-// container, no outline. Ink by default, orange + a live wobble on hover.
 export function IconButton({
   className,
   type = "button",

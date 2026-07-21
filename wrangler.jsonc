@@ -44,10 +44,8 @@
     }
   ],
 
-  // The top level is production. Named environments do NOT inherit `vars`,
-  // `r2_buckets`, `durable_objects` or `assets`, so staging repeats them.
-  // `routes` IS inherited — which is why the production route, when it lands
-  // here at cutover, must not be the only one declared.
+  // Named envs do NOT inherit vars/r2_buckets/durable_objects/assets — staging
+  // repeats them. `routes` IS inherited: never declare the production route alone.
   "env": {
     "staging": {
       "name": "krejums-staging",

@@ -1,9 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-/**
- * Local-dev fallback. In production images come from the bucket's public custom
- * domain and this route is never hit.
- */
+/** Local-dev fallback; in production images come from the bucket's public domain. */
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ key: string[] }> },
@@ -18,9 +15,8 @@ export async function GET(
   const object = await bucket.get(objectKey);
   if (!object) return new Response("not found", { status: 404 });
 
-  // Headers are built by hand rather than with object.writeHttpMetadata(): in
-  // `next dev` the R2 object is a proxied handle over to workerd, and a local
-  // Headers instance cannot cross that boundary.
+  // Hand-built, not object.writeHttpMetadata(): in `next dev` the R2 object is a
+  // proxied workerd handle, and a local Headers instance cannot cross that boundary.
   const headers = new Headers({
     "content-type": object.httpMetadata?.contentType ?? "application/octet-stream",
     etag: object.httpEtag,

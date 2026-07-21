@@ -8,7 +8,6 @@ export type UploadedPage = {
   width: number;
   height: number;
   originalFilename: string;
-  size: number;
 };
 
 export type UploadProgress = {
@@ -17,11 +16,8 @@ export type UploadProgress = {
   current?: string;
 };
 
-/**
- * "name (3).jpg" → stem "name", copy 3. A save with no suffix is copy 0, which
- * is what puts WhatsApp's first image ("... 12.09.51.jpeg") ahead of its
- * "... 12.09.51 (1).jpeg" and not, as a plain string sort does, behind all ten.
- */
+/** "name (3).jpg" → ["name", 3]; no suffix is copy 0, which keeps WhatsApp's
+    first image ahead of its "(1)" copy instead of behind all ten. */
 function orderKey(filename: string): [string, number] {
   const dot = filename.lastIndexOf(".");
   const stem = dot > 0 ? filename.slice(0, dot) : filename;
@@ -71,9 +67,8 @@ export function useR2Upload(issueId: string) {
 
       setProgress({ total: ordered.length, done: 0 });
 
-      // finally, not just success: a thrown upload used to leave `progress`
-      // set, which the input reads as `busy` — bricking the dropzone until a
-      // Studio reload.
+      // finally, not just success: a thrown upload used to leave `progress` set,
+      // which the input reads as busy — bricking the dropzone until a reload.
       try {
         for (const [i, file] of ordered.entries()) {
           setProgress({ total: ordered.length, done: i, current: file.name });
@@ -103,7 +98,6 @@ export function useR2Upload(issueId: string) {
             width,
             height,
             originalFilename: file.name,
-            size: file.size,
           });
         }
         return uploaded;

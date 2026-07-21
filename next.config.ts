@@ -21,7 +21,6 @@ const nextConfig: NextConfig = {
   },
 
   async redirects() {
-    // The editor lived at /studio (Sanity's convention) before it moved.
     // Two rules, not one: with `:path*` the bare /studio matches zero segments
     // and Next emits the literal "/admin/:path*" as the Location header.
     return [

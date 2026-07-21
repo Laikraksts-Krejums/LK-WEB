@@ -3,13 +3,8 @@ import { NextResponse } from "next/server";
 import { issueObjectKey } from "@/domain/keys";
 import { apiVersion, dataset, projectId } from "@/sanity/env";
 
-/**
- * The only endpoint that writes to storage. Called from the Studio's pages
- * input; same-origin, via the R2 binding, so there are no S3 keys and no CORS.
- *
- * Object keys are minted server-side, so a client cannot traverse paths or
- * overwrite another issue's pages.
- */
+// The only endpoint that writes to storage; same-origin via the R2 binding (no S3
+// keys, no CORS). Keys are minted server-side, so a client cannot traverse paths.
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const EXT_BY_TYPE: Record<string, string> = {
@@ -32,16 +27,8 @@ function isVerified(token: string): boolean {
   return (verified.get(token) ?? 0) > now;
 }
 
-/**
- * Asks Sanity whether this token may actually write to this project's dataset,
- * by dry-running a create it never commits.
- *
- * Checking project *membership* is not enough: a read-only viewer token is a
- * member, so it would pass and could then write junk into the bucket. This asks
- * the question we actually care about, and Sanity answers it authoritatively —
- * a viewer token comes back 403 "permission create required". The host is
- * project-scoped, so a token from another project fails here too.
- */
+/** Dry-runs a create it never commits. Membership is NOT enough — a read-only
+    viewer token is a member; Sanity answers it 403 "permission create required". */
 async function canWriteToProject(token: string): Promise<boolean> {
   if (isVerified(token)) return true;
 
@@ -143,9 +130,8 @@ export async function POST(request: Request) {
   return NextResponse.json({ key });
 }
 
-/** Reads the body a chunk at a time, aborting once it passes MAX_BYTES — so an
-    understated content-length cannot make the isolate buffer an arbitrarily
-    large upload before the size is checked. */
+/** Reads chunk by chunk, aborting past MAX_BYTES — an understated content-length
+    cannot make the isolate buffer an arbitrarily large upload. */
 async function readBounded(request: Request): Promise<Uint8Array | null> {
   const reader = request.body?.getReader();
   if (!reader) {

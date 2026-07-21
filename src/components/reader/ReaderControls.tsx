@@ -8,7 +8,6 @@ import {
   IconZoomIn,
   IconZoomOut,
 } from "@/components/ui/icons";
-import styles from "./Reader.module.css";
 
 type ControlsProps = {
   label: string;
@@ -24,8 +23,6 @@ type ControlsProps = {
   onFullscreen: () => void;
 };
 
-// role="group", not "toolbar": the arrow keys turn pages (useZoom), so we do not
-// implement the roving-tabindex focus movement a toolbar promises.
 export function ReaderControls({
   label,
   totalPages,
@@ -40,11 +37,20 @@ export function ReaderControls({
   onFullscreen,
 }: ControlsProps) {
   return (
-    <div className={styles.controls} role="group" aria-label="navigācija">
+    // z-10: a zoomed spread would otherwise paint over the zoom-out button.
+    <div
+      className="relative z-10 mx-auto mt-7 flex w-fit max-w-full flex-wrap items-center justify-center gap-[clamp(0.4rem,1.6vw,0.9rem)] rounded-xl border border-ink bg-cream-deep px-[12px] py-[6px] font-mono backdrop-blur-[3px] mobile:gap-[0.4rem]"
+      role="group"
+      aria-label="navigācija"
+    >
       <IconButton onClick={onPrev} disabled={!canPrev} aria-label="iepriekšējā lapa">
         <IconPrev />
       </IconButton>
-      <span className={styles.indicator} aria-live="polite">
+      {/* min-w: a growing label re-centres the capsule and moves the arrows mid-click. */}
+      <span
+        className="min-w-[8em] text-center text-[0.85rem] font-bold tracking-[0.05em] text-ink-soft tabular-nums"
+        aria-live="polite"
+      >
         {label} / {totalPages}
       </span>
       <IconButton onClick={onNext} disabled={!canNext} aria-label="nākošā lapa">

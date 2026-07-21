@@ -5,8 +5,7 @@ import { getIssueBySlug } from "@/server/issues";
 import { client } from "@/sanity/client";
 import { ISSUE_SLUGS_QUERY } from "@/sanity/queries";
 
-// Must be a literal: Next reads route segment config statically, so an
-// imported constant here fails the build. Mirrors REVALIDATE_SECONDS.
+// Must be a literal — Next reads segment config statically. Mirrors REVALIDATE_SECONDS.
 export const revalidate = 300;
 
 type Props = { params: Promise<{ slug: string }> };

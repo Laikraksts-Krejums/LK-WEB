@@ -15,9 +15,8 @@ export type CanvasHotspot = HotspotBoxValue & { _key: string; label?: string };
 
 const DRAW_THRESHOLD_PX = 6;
 
-/* The image is capped at this height and the box that holds it is fixed to it,
-   so a landscape page and a portrait one occupy the same vertical space and
-   paging between them never moves the controls below the canvas. */
+/* Fixed height: a landscape and a portrait page occupy the same vertical space,
+   so paging between them never moves the controls below the canvas. */
 const CANVAS_HEIGHT = "70vh";
 
 type DrawState = {
@@ -28,13 +27,8 @@ type DrawState = {
   y0: number;
 };
 
-/**
- * The page image with its hotspots drawn on top. The wrapping div is
- * `display: inline-block` with no explicit size, so it shrinks to exactly
- * the image's rendered box — that's what makes `containerRef`'s bounding
- * rect a reliable coordinate space for both the boxes and new-box drawing,
- * with no letterboxing gap to account for.
- */
+/** The wrapper is inline-block with no explicit size, so it hugs the image's
+    rendered box — keeping containerRef's rect a valid coordinate space for drawing. */
 export function HotspotCanvas({
   page,
   hotspots,
@@ -85,9 +79,8 @@ export function HotspotCanvas({
       const state = drawRef.current;
       drawRef.current = null;
       (e.currentTarget as Element).releasePointerCapture(e.pointerId);
-      // Read `draft` directly rather than inside the setDraft() updater below:
-      // React (Strict Mode) may invoke updater functions twice to surface
-      // impure updates, which would fire onCreate — a real patch — twice.
+      // Read `draft` directly, not in a setDraft updater: StrictMode may invoke
+      // updaters twice, which would fire onCreate — a real patch — twice.
       if (state?.drawing && draft) {
         const width = 100 - draft.left - draft.right;
         if (width >= MIN_SIZE_PCT && draft.height >= MIN_SIZE_PCT) {

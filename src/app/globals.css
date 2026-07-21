@@ -1,15 +1,13 @@
 @import "tailwindcss";
 
-/* The mobile breakpoint. v4's built-in max-* emits `width < 780px` (strict);
-   this @custom-variant emits `max-width: 780px` to match MOBILE_QUERY in
-   src/domain/breakpoints.ts exactly — keep the two 780s in sync. */
+/* Matches MOBILE_QUERY in src/domain/breakpoints.ts exactly (v4's built-in
+   max-* emits strict `width < 780px`) — keep the two 780s in sync. */
 @custom-variant mobile (@media (max-width: 780px));
 
 /* `.shell` gets tighter padding when an ancestor is fullscreen. */
 @custom-variant in-fullscreen (:fullscreen &);
 
-/* Cream + black from the launch poster; orange is a single accent.
-   `static` keeps every token in :root even when Tailwind's scanner cannot see
+/* `static` keeps every token in :root even when Tailwind's scanner cannot see
    it used — Reader.module.css references these vars from a separate stylesheet. */
 @theme static {
   --color-cream: #fbf7f0;
@@ -56,9 +54,8 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Paper grain — a fractal-noise texture multiplied onto the cream (Krējums
-     sketch language). Sits BEHIND content so scans and photographs paint above
-     it and stay clean. */
+  /* Paper grain multiplied onto the cream; sits BEHIND content so scans and
+     photographs paint above it and stay clean. */
   body::before {
     content: "";
     position: fixed;
