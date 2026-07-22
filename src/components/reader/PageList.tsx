@@ -76,8 +76,10 @@ export function PageList({
                       width={page.width}
                       height={page.height}
                       decoding="async"
-                      loading={i === 0 ? "eager" : "lazy"}
-                      fetchPriority={i === 0 ? "low" : undefined}
+                      // Every page fetches up front; a hidden lazy image never
+                      // does, and that is what left pages white until revealed.
+                      loading="eager"
+                      fetchPriority={i === 0 ? "high" : "low"}
                       draggable={false}
                     />
                     {pageHotspots.map((spot, j) => (

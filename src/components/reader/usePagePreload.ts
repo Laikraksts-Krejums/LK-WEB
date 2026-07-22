@@ -21,9 +21,8 @@ function afterLoad(fn: () => void): () => void {
   return () => window.removeEventListener("load", fn);
 }
 
-function decode(img: HTMLImageElement): Promise<unknown> {
-  // A lazy image in a display:none slot never fetches; eager is what starts it.
-  img.loading = "eager";
+function decode(img: HTMLImageElement, high: boolean): Promise<unknown> {
+  if (high) img.fetchPriority = "high";
   if (img.decode) return img.decode().catch(() => {});
   return new Promise<void>((resolve) => {
     if (img.complete) resolve();
@@ -74,11 +73,11 @@ export function usePagePreload(
       views[v]?.pages.forEach((i) => near.add(i));
     }
 
-    const run = (i: number): Promise<unknown> => {
+    const run = (i: number, high: boolean): Promise<unknown> => {
       const img = imgRefs.current?.[i];
       if (cancelled || !img || requested.current.has(i)) return Promise.resolve();
       requested.current.add(i);
-      return decode(img);
+      return decode(img, high);
     };
 
     // Near window: decode now, a few in flight at a time.
@@ -86,7 +85,7 @@ export function usePagePreload(
     let cursor = 0;
     const pump = (): Promise<unknown> => {
       if (cancelled || cursor >= nearQueue.length) return Promise.resolve();
-      return run(nearQueue[cursor++]).then(pump);
+      return run(nearQueue[cursor++], true).then(pump);
     };
     for (let k = 0; k < NEAR_CONCURRENCY; k++) pump();
 
@@ -95,7 +94,7 @@ export function usePagePreload(
     let t = 0;
     const idle = () => {
       if (cancelled || t >= tail.length) return;
-      run(tail[t++]).then(() => {
+      run(tail[t++], false).then(() => {
         const w = window as IdleWindow;
         if (w.requestIdleCallback) w.requestIdleCallback(idle, { timeout: 500 });
         else setTimeout(idle, 10);
