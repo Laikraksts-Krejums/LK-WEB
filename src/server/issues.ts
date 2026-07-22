@@ -13,7 +13,6 @@ import {
   SITE_SETTINGS_QUERY,
 } from "@/sanity/queries";
 
-/** Honoured on Cloudflare by the incremental cache + queue in open-next.config.ts. */
 export const REVALIDATE_SECONDS = 300;
 const cacheOpts = { next: { revalidate: REVALIDATE_SECONDS } };
 
@@ -67,14 +66,13 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   };
 }
 
-/** URLs of every reusable Link, for the site's schema.org sameAs. */
 export async function getSiteLinkUrls(): Promise<string[]> {
   return client.fetch(SITE_LINK_URLS_QUERY, {}, cacheOpts).catch(() => []);
 }
 
 function resolveHotspot(spot: SanityHotspot): ReaderHotspot | null {
   const href = spot.target === "custom" ? spot.customHref : spot.linkHref;
-  if (!href) return null; // the link it points at hasn't been filled in yet
+  if (!href) return null;
 
   return {
     pageNumber: spot.pageNumber,
@@ -87,7 +85,7 @@ function resolveHotspot(spot: SanityHotspot): ReaderHotspot | null {
   };
 }
 
-function toIssue(doc: SanityIssue): Issue {
+function toSummary(doc: SanityIssue): IssueSummary {
   return {
     number: doc.number,
     title: doc.title,
@@ -96,12 +94,16 @@ function toIssue(doc: SanityIssue): Issue {
     publishedAt: doc.publishedAt,
     blurb: doc.blurb,
     coverUrl: doc.coverImage ? urlForImage(doc.coverImage, 800) : undefined,
+  };
+}
+
+function toIssue(doc: SanityIssue): Issue {
+  return {
+    ...toSummary(doc),
     pages: (doc.pages ?? []).map((page, i) => {
       const isSpread = isSpreadImage(page.layout, page.width, page.height);
       return {
         src: r2PublicUrl(page.key),
-        // The fallback box must match what we decided the page IS: an unmeasured
-        // image marked as a spread would otherwise get a portrait box.
         width: page.width || (isSpread ? 2800 : 1400),
         height: page.height || 1980,
         alt: page.alt ?? `lapa ${i + 1}`,
@@ -114,8 +116,7 @@ function toIssue(doc: SanityIssue): Issue {
   };
 }
 
-/** Placeholder art for local work only; production shows an empty state. The
-    dynamic import keeps the fixtures out of the production bundle entirely. */
+// Dynamic import keeps the dev fixtures out of the production bundle.
 async function devFallback(): Promise<Issue | null> {
   if (process.env.NODE_ENV === "production") return null;
   const { DEV_ISSUE } = await import("@/server/fixtures");
@@ -147,28 +148,10 @@ export async function getAllIssues(): Promise<IssueSummary[]> {
 
   if (docs.length === 0) {
     const fallback = await devFallback();
-    return fallback ? [toSummary(fallback)] : [];
+    if (!fallback) return [];
+    const { pages, hotspots, ...summary } = fallback;
+    return [summary];
   }
 
-  return docs.map((doc) => ({
-    number: doc.number,
-    title: doc.title,
-    edition: doc.edition,
-    slug: doc.slug,
-    publishedAt: doc.publishedAt,
-    blurb: doc.blurb,
-    coverUrl: doc.coverImage ? urlForImage(doc.coverImage, 800) : undefined,
-  }));
-}
-
-function toSummary(issue: Issue): IssueSummary {
-  return {
-    number: issue.number,
-    title: issue.title,
-    edition: issue.edition,
-    slug: issue.slug,
-    publishedAt: issue.publishedAt,
-    blurb: issue.blurb,
-    coverUrl: issue.coverUrl,
-  };
+  return docs.map(toSummary);
 }

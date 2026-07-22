@@ -7,7 +7,7 @@ import { buildPageNumbering } from "@/domain/page";
 import type { ReaderHotspot, ReaderPage } from "@/domain/types";
 import { PageList } from "./PageList";
 import { ReaderControls } from "./ReaderControls";
-import { useBackgroundDecode } from "./useBackgroundDecode";
+import { usePagePreload } from "./usePagePreload";
 import { useIsMobile } from "./useIsMobile";
 import { useZoom } from "./useZoom";
 import { buildViews, findViewIndex, pageRangeLabel } from "@/domain/views";
@@ -18,41 +18,16 @@ type ReaderProps = {
   hotspots?: ReaderHotspot[];
 };
 
-/** One shared ease for every page turn — buttons, keys, edge-clicks, swipe. A
-    turn is ONE motion of one stage width, never an out-then-in pair. */
 const TURN_MS = 260;
-/** Floor for a flick: a fast finger lands the page quickly, but never so quickly
-    that the turn stops reading as a movement. */
 const MIN_TURN_MS = 130;
 const TURN_EASE = "cubic-bezier(0.22, 0.61, 0.36, 1)";
-/** Past this fraction of the stage width, a release commits the turn. */
 const SNAP_FRACTION = 0.18;
-/** …or past this speed (px/ms), however short the drag. */
 const FLICK_VELOCITY = 0.45;
-/** Resistance applied to a drag past the first/last view. */
 const RUBBER_BAND = 0.35;
 
-/**
- * React and useZoom must never write the same DOM property on the same node:
- *
- *   .reader   React owns a STATIC className and the --stage-ar custom property;
- *             useZoom owns .isZoomed/.isPanning. A dynamic className here would
- *             make React wipe .isZoomed. The `style` prop is safe: useZoom only
- *             touches this node's classList.
- *   .spread   React owns className; useZoom owns style.transform and the
- *             data-edge attribute (the click-to-turn cursor). Never pass a
- *             `style` prop to it — --stage-ar reaches it by inheritance instead.
- *   .slider   React owns className; Reader owns style.transform (the turn).
- *   .slot     React owns className and --slot-x; nothing imperative touches it.
- */
+// Ownership: useZoom owns the root's isZoomed/isPanning classes and the spread's
+// transform + data-edge; Reader owns the slider. Their classNames must stay STATIC.
 
-/**
- * The ratio of the stage, which is two printed pages wide. Taken from the issue's
- * own scans rather than a hardcoded A4, so a normal opening fills the stage
- * exactly instead of floating inside it. Median, so one odd scan cannot skew the
- * whole issue; clamped, so a garbage dimension cannot produce an absurd box. It
- * comes from data present at SSR, so the stage is right on the first paint.
- */
 function stageRatio(pages: ReaderPage[]): number {
   const units = pages
     .filter((page) => page.width > 0 && page.height > 0)
@@ -68,7 +43,6 @@ function stageRatio(pages: ReaderPage[]): number {
   return Math.min(Math.max(2 * unit, 1), 2.4);
 }
 
-/** Where the track actually is right now, mid-transition included. */
 function trackX(el: HTMLElement): number {
   const value = getComputedStyle(el).transform;
   if (!value || value === "none") return 0;
@@ -85,8 +59,6 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
   const sliderRef = useRef<HTMLDivElement>(null);
   const imgRefs = useRef<(HTMLImageElement | null)[]>([]);
 
-  // Honour reduced-motion for the slide (kept in a ref so the stable native
-  // gesture handlers never read a stale value).
   const reducedMotion = useRef(false);
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -106,8 +78,6 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
 
   const views = useMemo(() => buildViews(spreads, isMobile), [spreads, isMobile]);
 
-  // Printed page numbers, for the label and the total ONLY. Hotspots stay keyed
-  // to image indices — see lib/pageLayout.ts.
   const numbering = useMemo(() => buildPageNumbering(spreads), [spreads]);
 
   const stageAr = useMemo(() => stageRatio(pages), [pages]);
@@ -116,8 +86,6 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
     imgRefs.current[index] = el;
   }, []);
 
-  // Reveal only once the first page can paint in one go. Images stay mounted
-  // while hidden, so the decode is already in flight.
   useEffect(() => {
     let cancelled = false;
     const first = imgRefs.current[0];
@@ -135,30 +103,8 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
     };
   }, [pages]);
 
-  useBackgroundDecode(imgRefs, ready);
+  usePagePreload(imgRefs, views, current, ready);
 
-  // The background sweep decodes pages in order, one at a time behind idle
-  // callbacks — a fast reader can outrun it and turn to a page whose bitmap is
-  // not resident yet, flashing the white .page box for the length of the swipe.
-  // So whenever the view changes, force the immediate neighbours (the only pages
-  // one turn can reach) to the front of the queue. Idempotent with the sweep:
-  // decode() on an already-decoded image resolves at once and costs nothing.
-  useEffect(() => {
-    if (!ready) return;
-    const targets = new Set<number>();
-    for (let v = current - 1; v <= current + 1; v++) {
-      views[v]?.pages.forEach((i) => targets.add(i));
-    }
-    targets.forEach((i) => {
-      const img = imgRefs.current[i];
-      if (!img) return;
-      img.loading = "eager";
-      img.decode?.().catch(() => {});
-    });
-  }, [current, views, ready]);
-
-  // Read by native listeners in useZoom, so these must be stable and never
-  // stale: state comes from refs, not closures.
   const currentRef = useRef(0);
   const viewCountRef = useRef(views.length);
   const resetZoomRef = useRef<(() => void) | null>(null);
@@ -169,15 +115,10 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
     viewCountRef.current = views.length;
   }, [views.length]);
 
-  // The turn in flight, if any. A token lets a newer turn supersede the pending
-  // transitionend/timeout of an older one.
   const turn = useRef<{ next: number; delta: number } | null>(null);
   const turnToken = useRef(0);
-  // Where the track sat when the current drag began — non-zero only when the
-  // finger grabbed the stage mid-turn.
   const dragBase = useRef(0);
 
-  /** Set the track's transform, optionally with the shared turn ease. */
   const slide = useCallback(
     (value: string, animate: boolean, ms: number = TURN_MS) => {
       const el = sliderRef.current;
@@ -191,17 +132,7 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
     [],
   );
 
-  /**
-   * Land an in-flight turn immediately, without moving a pixel.
-   *
-   * Slots are laid out relative to `current`, so committing a turn of `delta`
-   * shifts every one of them `delta` stage widths to the left. Add that back to
-   * the track and the frame on screen is bit-for-bit the same — the turn is now
-   * simply expressed relative to the view it was heading for. That is what lets
-   * a second turn (rapid arrow clicks, or a finger grabbing the stage mid-slide)
-   * start from exactly where the eye last saw the pages, instead of restarting
-   * or jumping.
-   */
+  /** Lands an in-flight turn without moving a pixel. */
   const finishTurn = useCallback(() => {
     const pending = turn.current;
     const el = sliderRef.current;
@@ -209,7 +140,7 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
 
     const x = trackX(el);
     turn.current = null;
-    turnToken.current += 1; // the pending transitionend/timeout now no-ops
+    turnToken.current += 1;
 
     flushSync(() => setCurrent(pending.next));
     currentRef.current = pending.next;
@@ -224,13 +155,11 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
       const el = sliderRef.current;
       const next = currentRef.current + delta;
 
-      // Nothing there: settle the track (a rubber-banded drag has offset it).
       if (next < 0 || next >= viewCountRef.current) {
         slide("", true);
         return;
       }
 
-      // Before the state change, so the incoming view never paints mid-zoom.
       resetZoomRef.current?.();
 
       if (!el || reducedMotion.current) {
@@ -240,8 +169,6 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
         return;
       }
 
-      // ONE motion. The neighbouring view is already mounted and on stage, one
-      // width away, so this slides it in — it is not swapped in afterwards.
       const token = ++turnToken.current;
       turn.current = { next, delta };
       slide(`translateX(${-delta * 100}%)`, true, ms);
@@ -250,36 +177,23 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
       let done = false;
 
       const settle = (e?: TransitionEvent) => {
-        // Ignore transitions bubbling up from children (e.g. a hotspot's
-        // background) — only the track's own transform ends a turn.
         if (e && (e.target !== el || e.propertyName !== "transform")) return;
         if (done) return;
         done = true;
         el.removeEventListener("transitionend", settle);
         clearTimeout(timer);
-        if (token !== turnToken.current) return; // superseded
+        if (token !== turnToken.current) return;
 
         turn.current = null;
-        // Re-index. The track at -delta widths with the OLD current paints the
-        // same pixels as the track at 0 with the NEW one, so committing the
-        // state and dropping the transform inside one task shows no seam and
-        // needs no forced reflow.
         flushSync(() => setCurrent(next));
         currentRef.current = next;
         slide("", false);
       };
 
-      // transitionend is the real signal. This only backs it up for the case
-      // where it never arrives at all — and it must never PREEMPT a turn that is
-      // merely running late. The main thread can stall for a couple of hundred
-      // ms just as a turn starts (rasterising the page that has come on stage),
-      // which delays the transition without shortening it; a plain wall-clock
-      // deadline fires mid-slide and chops the last of the travel off, which is
-      // precisely the snap this rework exists to remove. So: ask whether the
-      // track is still moving, and only settle once it truly is not.
+      // Backstop for a lost transitionend; must never preempt a late-running turn.
       const backstop = () => {
         if (el.getAnimations().some((a) => a.playState === "running")) {
-          timer = setTimeout(backstop, 80); // still travelling — let it land
+          timer = setTimeout(backstop, 80);
           return;
         }
         settle();
@@ -291,10 +205,8 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
     [finishTurn, slide],
   );
 
-  // ---- Touch drag (useZoom reports the deltas) ----
-
   const onDragStart = useCallback(() => {
-    finishTurn(); // grabbing the stage mid-turn takes over from where it is
+    finishTurn();
     const el = sliderRef.current;
     dragBase.current = el ? trackX(el) : 0;
   }, [finishTurn]);
@@ -305,8 +217,6 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
     const raw = dragBase.current + dx;
     const atStart = currentRef.current === 0;
     const atEnd = currentRef.current >= viewCountRef.current - 1;
-    // Past the first/last view there is no page to pull in, so the track goes
-    // stiff rather than dragging empty stage across.
     const x =
       (atStart && raw > 0) || (atEnd && raw < 0) ? raw * RUBBER_BAND : raw;
     el.style.transition = "none";
@@ -318,14 +228,11 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
       const raw = dragBase.current + dx;
       dragBase.current = 0;
 
-      const dir = raw < 0 ? 1 : -1; // dragging left turns to the next view
+      const dir = raw < 0 ? 1 : -1;
       const atStart = currentRef.current === 0;
       const atEnd = currentRef.current >= viewCountRef.current - 1;
       const canGo = dir > 0 ? !atEnd : !atStart;
 
-      // Two ways to commit: drag far enough, or flick fast enough. The flick
-      // only counts while it is still travelling the way the page was dragged —
-      // a finger that reverses at the last moment is asking to snap back.
       const far = Math.abs(raw) > width * SNAP_FRACTION;
       const flick = Math.abs(velocity) > FLICK_VELOCITY && velocity * dir < 0;
 
@@ -334,8 +241,6 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
         return;
       }
 
-      // Finish at the speed the finger was already going, so the turn reads as
-      // one continuous motion rather than a drag and then a separate animation.
       const remaining = Math.abs(dir * width + raw);
       const speed = Math.max(Math.abs(velocity), remaining / TURN_MS);
       const ms = Math.max(MIN_TURN_MS, Math.min(TURN_MS, remaining / speed));
@@ -362,15 +267,13 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
     resetZoomRef.current = resetZoom;
   }, [resetZoom]);
 
-  // Crossing the breakpoint rebuilds the views: keep the reader on the page it
-  // was showing rather than snapping back to the cover.
+  // Crossing the breakpoint rebuilds the views; stay on the page being read.
   const prevIsMobile = useRef(isMobile);
   useEffect(() => {
     if (prevIsMobile.current === isMobile) return;
     prevIsMobile.current = isMobile;
 
     resetZoom();
-    // Any turn in flight was measured against the old view list.
     turn.current = null;
     turnToken.current += 1;
     slide("", false);
@@ -384,16 +287,13 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
     });
   }, [isMobile, spreads, resetZoom, slide]);
 
-  // Supersede any turn still in flight when the reader unmounts (e.g. a hotspot
-  // click mid-turn), so its pending settle cannot flushSync a dead component.
+  // On unmount, supersede any pending settle so it cannot flushSync a dead component.
   useEffect(() => {
     return () => {
       turnToken.current += 1;
     };
   }, []);
 
-  // Kept in sync with the actual state, so ESC (or the OS leaving fullscreen)
-  // keeps the button's label and pressed state honest.
   const [isFullscreen, setIsFullscreen] = useState(false);
   useEffect(() => {
     const sync = () => setIsFullscreen(Boolean(document.fullscreenElement));
@@ -414,16 +314,15 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
 
   return (
     <div
-      className={styles.reader}
+      className="mx-auto max-w-[1200px] scroll-mt-8 touch-pan-y"
       ref={readerRef}
       style={{ "--stage-ar": stageAr.toFixed(4) } as React.CSSProperties}
     >
-      {/* The spread stays in flow while loading. Its pages carry an
-          aspect-ratio and a white background, so the box is the right size
-          from the first paint and the cover drops into it without moving
-          anything. Hiding it until `ready` cost ~0.6 CLS. */}
       <div ref={spreadRef} className={styles.spread}>
-        <div ref={sliderRef} className={styles.slider}>
+        <div
+          ref={sliderRef}
+          className="relative flex h-full w-full items-center justify-center"
+        >
           <PageList
             pages={pages}
             hotspots={hotspots}
@@ -432,7 +331,13 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
             registerImg={registerImg}
           />
         </div>
-        {!ready && <div className={styles.loading}>ielādē numuru</div>}
+        {!ready && (
+          <div
+            className={`${styles.loading} absolute inset-0 z-[6] flex items-center justify-center text-center font-serif text-[1.05rem] italic text-ink-soft`}
+          >
+            ielādē numuru
+          </div>
+        )}
       </div>
 
       <ReaderControls

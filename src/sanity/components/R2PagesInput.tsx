@@ -6,10 +6,6 @@ import { insert, useFormValue, type ArrayOfObjectsInputProps } from "sanity";
 import { randomKey } from "@sanity/util/content";
 import { useR2Upload } from "./useR2Upload";
 
-/**
- * Dropzone + `props.renderDefault(props)`, which inherits Sanity's own
- * drag-to-reorder and delete UI. Array order is page order.
- */
 export function R2PagesInput(props: ArrayOfObjectsInputProps) {
   const { onChange, renderDefault } = props;
   const issueId = (useFormValue(["_id"]) as string | undefined) ?? "";

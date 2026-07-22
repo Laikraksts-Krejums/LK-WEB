@@ -3,11 +3,9 @@
   "name": "krejums",
   "main": ".open-next/worker.js",
 
-  // The R2 buckets live in this account, not the personal one. Pinned so a
-  // deploy cannot land in the wrong account and find no bindings.
+  // Pinned so a deploy can't land in the wrong account and find no bindings.
   "account_id": "09f2d64d096cee6444956ae641fc3472",
   "compatibility_date": "2025-09-23",
-  // Required by the OpenNext adapter.
   "compatibility_flags": ["nodejs_compat"],
 
   "assets": {
@@ -16,13 +14,10 @@
   },
 
   "r2_buckets": [
-    // Page images. Bound to the Worker, so uploads need no S3 keys and no CORS,
-    // and `next dev` gets a Miniflare-backed local bucket for free.
     {
       "binding": "PAGES_BUCKET",
       "bucket_name": "krejums-pages"
     },
-    // Next's incremental cache. Deliberately a separate bucket from the images.
     {
       "binding": "NEXT_INC_CACHE_R2_BUCKET",
       "bucket_name": "krejums-next-cache"
@@ -44,10 +39,8 @@
     }
   ],
 
-  // The top level is production. Named environments do NOT inherit `vars`,
-  // `r2_buckets`, `durable_objects` or `assets`, so staging repeats them.
-  // `routes` IS inherited — which is why the production route, when it lands
-  // here at cutover, must not be the only one declared.
+  // Named envs do NOT inherit vars/r2_buckets/durable_objects/assets — staging
+  // repeats them. `routes` IS inherited: never declare the production route alone.
   "env": {
     "staging": {
       "name": "krejums-staging",
@@ -65,13 +58,11 @@
       },
 
       "r2_buckets": [
-        // Same images bucket as production on purpose: R2 keys are namespaced by
-        // issue _id, so a separate bucket would render zero pages.
+        // Same images bucket as production on purpose; only the ISR cache differs.
         {
           "binding": "PAGES_BUCKET",
           "bucket_name": "krejums-pages"
         },
-        // The ISR cache is the one thing that must not be shared.
         {
           "binding": "NEXT_INC_CACHE_R2_BUCKET",
           "bucket_name": "krejums-next-cache-staging"

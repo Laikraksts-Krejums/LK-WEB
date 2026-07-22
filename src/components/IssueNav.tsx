@@ -9,7 +9,6 @@ import { IconMenu, IconUnderline } from "@/components/ui/icons";
 import { clsx } from "clsx";
 import type { IssueSummary } from "@/domain/types";
 
-
 function activeSlug(pathname: string, issues: IssueSummary[]): string | null {
   if (pathname === "/") return issues[0]?.slug ?? null;
   const match = /^\/numuri\/([^/]+)/.exec(pathname);
@@ -22,7 +21,6 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
   const [lastPath, setLastPath] = useState(pathname);
   const navRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-
 
   if (lastPath !== pathname) {
     setLastPath(pathname);
@@ -67,11 +65,10 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
       </IconButton>
 
       {open && (
-        
         <div
           id="issue-menu"
           role="menu"
-          className="absolute right-0 top-[calc(100%+0.6rem)] z-30 max-h-[min(60vh,420px)] min-w-[240px] max-w-[min(320px,calc(100vw-2rem))] animate-panel overflow-y-auto rounded-xl border border-ink bg-cream-deep p-[0.4rem] font-mono motion-reduce:animate-none"
+          className="absolute right-0 top-[calc(100%+0.6rem)] z-30 max-h-[min(60vh,420px)] min-w-[280px] max-w-[min(380px,calc(100vw-2rem))] animate-panel overflow-y-auto rounded-xl border border-ink bg-cream-deep p-[0.4rem] font-mono motion-reduce:animate-none"
         >
           <ul className="m-0 list-none p-0">
             {issues.map((issue) => {
@@ -82,25 +79,24 @@ export function IssueNav({ issues }: { issues: IssueSummary[] }) {
                     href={`/numuri/${issue.slug}`}
                     role="menuitem"
                     aria-current={isCurrent ? "page" : undefined}
-                    className="group relative flex items-baseline gap-[0.6rem] rounded-lg px-[0.7rem] py-[0.6rem] text-ink no-underline"
+                    className="group relative flex w-fit max-w-full flex-col items-start rounded-lg px-[0.7rem] py-[0.6rem] text-ink no-underline"
                   >
-                    <Eyebrow className="flex-none text-orange">
-                      {issue.edition ?? `nr. ${issue.number}`}
-                    </Eyebrow>
- 
-                    <span className="flex min-w-0 flex-col items-start">
-                      <span className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[0.95rem]">
+                    <span className="flex max-w-full items-baseline gap-[0.6rem]">
+                      <Eyebrow className="flex-none text-orange">
+                        {issue.edition ?? `nr. ${issue.number}`}
+                      </Eyebrow>
+                      <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap font-serif text-[0.95rem]">
                         {issue.title}
                       </span>
-                      <IconUnderline
-                        className={clsx(
-                          "pointer-events-none mt-[2px] h-[6px] w-full transition-opacity duration-[140ms] motion-reduce:transition-none",
-                          isCurrent
-                            ? "text-orange opacity-100"
-                            : "text-ink opacity-0 group-hover:opacity-70",
-                        )}
-                      />
                     </span>
+                    <IconUnderline
+                      className={clsx(
+                        "pointer-events-none mt-[2px] h-[6px] w-full transition-opacity duration-[140ms] motion-reduce:transition-none",
+                        isCurrent
+                          ? "text-orange opacity-100"
+                          : "text-ink opacity-0 group-hover:opacity-70",
+                      )}
+                    />
                   </Link>
                 </li>
               );

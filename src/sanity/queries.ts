@@ -22,7 +22,6 @@ const ISSUE_FIELDS = /* groq */ `
   }
 `;
 
-/** The front issue: highest number wins. */
 export const LATEST_ISSUE_QUERY = defineQuery(`
   *[_type == "issue"] | order(number desc)[0]{ ${ISSUE_FIELDS} }
 `);
@@ -31,7 +30,6 @@ export const ISSUE_BY_SLUG_QUERY = defineQuery(`
   *[_type == "issue" && slug.current == $slug][0]{ ${ISSUE_FIELDS} }
 `);
 
-/** Archive listing: no page images, they are not needed for a card. */
 export const ALL_ISSUES_QUERY = defineQuery(`
   *[_type == "issue"] | order(number desc){
     number,
@@ -57,7 +55,6 @@ export const SITE_SETTINGS_QUERY = defineQuery(`
   }
 `);
 
-/** URLs of every reusable Link, for the site's schema.org sameAs. */
 export const SITE_LINK_URLS_QUERY = defineQuery(`
   *[_type == "siteLink"].url
 `);

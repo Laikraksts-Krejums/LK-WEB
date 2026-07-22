@@ -11,35 +11,10 @@ type PageListProps = {
   registerImg: (index: number, el: HTMLImageElement | null) => void;
 };
 
-/** Views either side of the current one that are actually on stage. One is all a
-    turn can ever reveal, and rendering more costs raster memory for pages the
-    reader will never see mid-gesture. */
 const NEAR = 1;
 
-/**
- * The carousel track: one slot per view, laid out at (v - current) stage widths.
- * The current slot sits at 0, its neighbours wait one width off either side, and
- * Reader turns a page by translating the whole track. That is what makes a swipe
- * pull the next page in under the finger — it is already there, on stage, one
- * width away.
- *
- * Every page stays mounted. Do NOT render only the nearby views: flipping is
- * instant because all N bitmaps are decoded and resident, and unmounting an
- * <img> lets the browser evict the bitmap and turns every page turn back into a
- * decode. Far slots are display:none — rendered nowhere, mounted still.
- * Regression test: flipping through the issue must produce zero new image
- * requests.
- *
- * The three boxes are not the same thing, and the difference is what makes
- * mobile's half-spread views possible:
- *
- *   .slot   one VIEW. Exactly one stage wide, whatever it holds.
- *   .page   the WINDOW. Usually the whole sheet; on mobile, half of a spread.
- *   .sheet  the IMAGE's box, always, exactly. Hotspots are percentages of the
- *           whole scan, so they live in here — never in .page. Showing half a
- *           spread then costs nothing but sliding .sheet under .page, and the
- *           coordinates stay true with no remapping.
- */
+/** Every page stays MOUNTED: unmounting an <img> evicts its bitmap and turns
+    flips back into decodes — flipping must produce zero new image requests. */
 export function PageList({
   pages,
   hotspots,
@@ -52,9 +27,6 @@ export function PageList({
       {views.map((view, v) => {
         const offset = v - current;
 
-        // A lone SPREAD image is not "single": it is a whole opening and must
-        // fill the stage, not be narrowed to a cover's width. HALF a spread,
-        // though, is one printed page and sizes like any other (mobile only).
         const isSingle =
           view.pages.length === 1 &&
           (!pages[view.pages[0]]?.isSpread || Boolean(view.half));
@@ -69,9 +41,7 @@ export function PageList({
             key={v}
             className={slotClasses.join(" ")}
             style={{ "--slot-x": `${offset * 100}%` } as React.CSSProperties}
-            // The neighbours are on stage but off-screen. Without this their
-            // hotspots are still links: tabbable, and read out as if they were
-            // on the page in front of you.
+            // Off-screen neighbours' hotspots must not be tabbable links.
             inert={offset !== 0}
           >
             {view.pages.map((i) => {
@@ -81,7 +51,6 @@ export function PageList({
               const pageHotspots = hotspots.filter((h) => h.pageNumber === i + 1);
 
               const classes = [styles.page];
-              // Only ever set by buildMobileViews.
               if (view.half) {
                 classes.push(
                   styles.half,
@@ -89,9 +58,6 @@ export function PageList({
                 );
               }
 
-              // The scan's own ratio, which sizes .sheet — and .sheet is what
-              // the hotspot percentages are measured against. A string: React
-              // would append "px" to a bare number.
               const ratio = page.height > 0 ? page.width / page.height : 1 / 1.414;
 
               return (
@@ -110,12 +76,10 @@ export function PageList({
                       width={page.width}
                       height={page.height}
                       decoding="async"
-                      // Only the cover loads with the document;
-                      // useBackgroundDecode promotes the rest to eager once the
-                      // page is done loading. The cover yields to the hero,
-                      // which is the LCP element above it.
-                      loading={i === 0 ? "eager" : "lazy"}
-                      fetchPriority={i === 0 ? "low" : undefined}
+                      // Every page fetches up front; a hidden lazy image never
+                      // does, and that is what left pages white until revealed.
+                      loading="eager"
+                      fetchPriority={i === 0 ? "high" : "low"}
                       draggable={false}
                     />
                     {pageHotspots.map((spot, j) => (

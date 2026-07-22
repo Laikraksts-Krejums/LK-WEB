@@ -3,14 +3,8 @@ import r2IncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cac
 import doQueue from "@opennextjs/cloudflare/overrides/queue/do-queue";
 import { withRegionalCache } from "@opennextjs/cloudflare/overrides/incremental-cache/regional-cache";
 
-/**
- * `revalidate` only works on Workers with BOTH an incremental cache and a queue;
- * with neither it silently does nothing.
- *
- * revalidateTag/revalidatePath additionally need a D1 tag cache. We have none,
- * which is why nothing calls them — without one they are no-ops that look like
- * they worked.
- */
+/** `revalidate` works on Workers only with BOTH an incremental cache and a queue.
+    revalidateTag/Path also need a D1 tag cache we lack — silent no-ops, so nothing calls them. */
 export default defineCloudflareConfig({
   incrementalCache: withRegionalCache(r2IncrementalCache, {
     mode: "long-lived",

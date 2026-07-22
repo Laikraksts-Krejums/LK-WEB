@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Eyebrow } from "@/components/ui/Eyebrow";
 import type { IssueSummary } from "@/domain/types";
 
-/** Roman numerals for the issue number — the magazine numbers itself I, II, … */
 function roman(n: number): string {
   const table: [number, string][] = [
     [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"],
@@ -33,7 +32,6 @@ export function IssueCard({ issue }: { issue: IssueSummary }) {
         href={`/numuri/${issue.slug}`}
         className={`block text-inherit no-underline -rotate-1 hover:rotate-0 hover:scale-[1.03] ${SPRING}`}
       >
-        {/* Every other card leans the other way, for a scattered-on-a-table look. */}
         <div className={`[li:nth-child(even)_&]:rotate-[1.5deg] ${SPRING}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

@@ -1,11 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./admin.css";
 
-// A separate root layout from the site (there is no app/layout.tsx). Because
-// Studio lives under its own root, navigating between the site and /admin is a
-// full page load — which is exactly what keeps globals.css and Tailwind's
-// Preflight from ever loading into the Studio. Imports nothing from `sanity` on
-// purpose — see ./[[...tool]]/page.tsx.
+// A separate root layout (no app/layout.tsx): site ↔ /admin is a full page load,
+// which keeps globals.css and Tailwind's Preflight out of the Studio.
 export const metadata: Metadata = {
   title: "krējums - redakcija",
   robots: { index: false, follow: false },

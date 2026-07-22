@@ -1,59 +1,22 @@
-.reader {
-  max-width: 1200px;
-  margin: 0 auto;
-  scroll-margin-top: 2rem;
-  /* Vertical scrolling stays with the browser; horizontal gestures are ours
-     (swipe to turn). Overridden to `none` on the spread while zoomed. */
-  touch-action: pan-y;
-}
-
 .spread {
   position: relative;
-
-  /* Clips the sliding .slider to the stage so an outgoing/incoming view never
-     spills over the margins or the toolbar (and bounds a zoomed page to the
-     stage frame). */
   overflow: hidden;
-
   display: flex;
   justify-content: center;
-
-  /* LOAD-BEARING, not cosmetic. Pages size themselves from their own
-     aspect-ratio with height:auto; the default `stretch` would force a definite
-     height on them, override that ratio, and stop .page from being the image's
-     box — which is exactly what the hotspot percentages are measured against. */
+  /* center is load-bearing: stretch would override .page's aspect-ratio box. */
   align-items: center;
-
-  gap: 0;
-
-  /* No drop-shadow: pages sit flat on the cream, the article artwork carries
-     the spread (Krējums sketch language). */
-
-  /* The stage. Reserves the height of a full two-page opening even in
-     single-page mode (a narrower page centers inside it), so switching between
-     the two never resizes this box and never shifts the controls below it.
-     --stage-ar is the issue's OWN two-pages-wide ratio, set by Reader from the
-     scans; the fallback is a pair of A4s. */
   aspect-ratio: var(--stage-ar, 1.4144);
-
   transform-origin: center center;
   transition: transform 0.14s ease-out;
 }
 
-/* Click-to-turn is confined to the outer gutters, so a click on the article
-   itself no longer flips the page (useZoom: EDGE_ZONE_*). A zone you cannot see
-   is a zone nobody finds, so hovering one arms the cursor — useZoom sets
-   data-edge on hover and clears it while zoomed, where a drag is a pan. */
 .spread[data-edge] {
   cursor: pointer;
 }
 
-/* No transition during a live drag/pinch; keep it for discrete zoom steps. */
 .isPanning .spread {
   transition: none;
 }
-/* Promoted only while it is actually moving — a permanent layer on an element
-   this large costs memory on mobile for the 99% of the time it is static. */
 .isZoomed .spread,
 .isPanning .spread {
   will-change: transform;
@@ -66,52 +29,19 @@
   cursor: grabbing;
 }
 
-/* The carousel track. Holds every view and carries the horizontal page-turn
-   slide. Kept as its own layer so a turn's translateX never touches the zoom
-   transform that useZoom owns on .spread — Reader drives this element's
-   transform imperatively (see navigate / the drag handlers). */
-.slider {
-  position: relative; /* the containing block for the off-stage slots */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-}
-
-/* One VIEW, exactly one stage wide, parked at (v - current) widths from centre.
-   The neighbours are on stage the whole time, just outside .spread's overflow
-   clip — which is the entire point: a swipe pulls a page that is ALREADY THERE
-   in under the finger, rather than sliding the old one out over nothing and
-   dropping the new one in afterwards.
-
-   Only the current slot is in flow. The others are lifted out of it so they
-   cannot influence the stage's height — on mobile .spread has no aspect-ratio
-   and takes its height from its content, so a taller neighbour would otherwise
-   grow the stage and shove the toolbar down mid-swipe. */
 .slot {
   position: absolute;
   inset: 0;
   transform: translateX(var(--slot-x, 0));
-
-  /* Mounted, but rendered nowhere: a view more than one turn away cannot be
-     reached without another turn, so there is nothing to gain from rasterising
-     it. The <img> elements inside stay in the DOM and stay decoded — see the
-     header of PageList.tsx. */
   display: none;
-
   justify-content: center;
   align-items: center;
-  gap: 0;
 }
 
-/* The current view and the one either side of it: on stage. */
 .slot.isNear {
   display: flex;
 }
 
-/* In flow, and the only slot that is — so the stage is sized by the view you
-   are actually reading. */
 .slot.isCurrent {
   position: relative;
   inset: auto;
@@ -122,67 +52,25 @@
   position: relative;
   display: block;
   background: #fff;
-  /* Hairline edge: restores the white-page-on-cream separation the drop-shadow
-     used to give, with no shadow (Krējums sketch language, reader fix 1). Two
-     portrait pages side by side share a 2px gutter line where their edges meet
-     — the crease, drawn rather than shaded. */
   border: 1px solid var(--color-rule);
-  /* Clips .sheet down to this window. That is the whole trick behind the
-     half-spread views: nothing is cropped away, it is just off-window. */
   overflow: hidden;
-
-  /* The SCAN's own ratio (PageList sets --page-ar from the stored dimensions),
-     so this window is exactly the image's box. Was a hardcoded 1/1.414 +
-     object-fit:cover, which center-cropped every scan whose ratio differed and
-     sawed both outer halves off a landscape two-page spread. */
   aspect-ratio: var(--page-ar, 0.7072);
-
-  /* Height stays AUTO — always derived from the ratio, never definite. A
-     definite height would beat the ratio the moment anything capped the width
-     (.single below, or flex shrink), and the box would stop matching the image.
-     The width is the flex main size instead. */
   height: auto;
-
-  /* Basis proportional to the ratio: two pages then shrink to widths in
-     proportion to their ratios, which lands them at the SAME height even when
-     the scans differ. A spread (~1.414) asks for ~141% and takes the whole
-     stage; two portraits ask ~71% each and settle at ~50% each. */
   flex: 0 1 calc(var(--page-ar, 0.7072) * 100%);
-
-  /* The width at which this page's height equals the stage height. Capping the
-     WIDTH rather than the height is what keeps the box on-ratio: max-width
-     clamps the width and the aspect-ratio re-derives the height. A max-height
-     would clamp the height against an already-definite width and silently break
-     the ratio — the exact hotspot drift this whole model exists to prevent. */
+  /* Cap the WIDTH, never the height — a max-height breaks the ratio and drifts the hotspots. */
   max-width: calc(var(--page-ar, 0.7072) / var(--stage-ar, 1.4144) * 100%);
-
-  /* Flex items take an automatic minimum size from their content; zero it so
-     the caps above always win. */
   min-width: 0;
   min-height: 0;
 }
 
-/* A lone SINGLE page: a cover, a back cover, or an odd page facing a spread.
-   Not a lone spread — that is a whole opening and fills the stage, so PageList
-   only sets .isSingle when the view's one page is not a spread.
-
-   Per SLOT, not per stage: with three views on stage at once, the cover can be
-   sliding out while a two-page opening slides in, and each has to size by its
-   own rule.
-
-   Deliberately sets no max-width: the ratio-aware cap on .page has to keep
-   applying, or on a short stage the height would be clamped instead and the
-   hotspots would drift. */
 .slot.isSingle .page {
-  flex-basis: auto; /* an explicit basis would otherwise beat the width below */
+  flex-basis: auto;
   width: min(540px, 90vw);
 }
 
-/* The IMAGE's box, always, exactly — even when .page above is showing only half
-   of it. The hotspots are percentages of the whole scan, so they anchor HERE and
-   never need remapping: a half view just slides this box under the window. */
+/* Always the whole image's box — hotspot percentages anchor here. */
 .sheet {
-  position: relative; /* anchors the absolutely-positioned hotspots */
+  position: relative;
   width: 100%;
   height: 100%;
 }
@@ -191,20 +79,15 @@
   display: block;
   width: 100%;
   height: 100%;
-  /* `cover`, not `contain`. The box already carries the scan's ratio, so both
-     are a no-op on paper — but `--page-ar` is rounded to 4 decimals and Safari
-     rounds subpixel layout its own way, so `contain` fits the image a fraction
-     of a pixel short and parks the whole gap at the TOP, where .page's white
-     background peeks through as a hairline over the scan. `cover` fills the box
-     instead (the <1px overflow is clipped by .page's overflow:hidden) and still
-     preserves the ratio, so there is no distortion — only the safe-letterbox
-     signal for stale/missing dimensions is traded away. */
   object-fit: cover;
 }
 
-/* One half of a spread — mobile only (views.ts: buildMobileViews). The window
-   narrows to half the scan's ratio and the sheet stays full width inside it, so
-   exactly one printed page shows. The other half is off-window, not cropped. */
+.slot.isNear .sheet img {
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
 .half {
   aspect-ratio: calc(var(--page-ar, 1.4144) / 2);
   flex-basis: auto;
@@ -216,17 +99,9 @@
   transform: none;
 }
 .halfRight .sheet {
-  /* Half the sheet's own width — i.e. one printed page. */
   transform: translateX(-50%);
 }
 
-/* No crease on the spine any more — the spread lies flat, no inset shadow and
-   no replacement (Krējums sketch language). .spineLeft/.spineRight are still
-   set by React but carry no gutter treatment. */
-
-/* Clickable areas over printed links. Percentages, so they hold at any page
-   size. Drawn as a hand-drawn orange ring that wobbles gently — "the line
-   feels alive" — rather than an invisible box. */
 .hotspot {
   position: absolute;
   display: block;
@@ -252,21 +127,6 @@
   }
 }
 
-/* Sits over the reserved page box rather than in front of it, so revealing the
-   cover is a fade, not a reflow. */
-.loading {
-  position: absolute;
-  inset: 0;
-  z-index: 6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-family: var(--font-serif);
-  font-style: italic;
-  color: var(--color-ink-soft);
-  font-size: 1.05rem;
-}
 .loading::after {
   content: "";
   display: inline-block;
@@ -287,66 +147,12 @@
   }
 }
 
-.controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: clamp(0.4rem, 1.6vw, 0.9rem);
-  width: fit-content;
-  max-width: 100%;
-  margin: 1.75rem auto 0;
-  padding: 6px 12px;
-  flex-wrap: wrap;
-  font-family: var(--font-mono);
-
-  /* Cream panel behind the glyph-only icons, so they keep contrast over a
-     dark page or in fullscreen now that the buttons carry no outline of their
-     own (Krējums sketch language, reader fix 3). Shares its chrome — cream-deep
-     fill, crisp ink hairline, xl radius — with the issue-nav dropdown so the
-     two read as one family. */
-  background: var(--color-cream-deep);
-  border: 1px solid var(--color-ink);
-  border-radius: 0.75rem;
-  backdrop-filter: blur(3px);
-
-  /* A transformed element paints above in-flow siblings, so a zoomed spread
-     would cover these buttons — including the one that zooms back out. */
-  position: relative;
-  z-index: 10;
-}
-
-.indicator {
-  font-variant-numeric: tabular-nums;
-  font-size: 0.85rem;
-  color: var(--color-ink-soft);
-  letter-spacing: 0.05em;
-  text-align: center;
-  font-weight: 700;
-
-  /* Wide enough for the longest label an issue can produce ("50–51 / 52"), and
-     tabular figures so the digits do not breathe either. The toolbar is a
-     fit-content capsule centred in the column: let this box grow by even a few
-     px on a page turn and the whole capsule re-centres, sliding the arrows out
-     from under the cursor you are clicking them with. */
-  min-width: 8em;
-}
-
 @media (max-width: 780px) {
-  /* Mobile always shows one IMAGE per view (views.ts: buildMobileViews) —
-     including a spread, which is shown whole and pinch-zoomed rather than split.
-     There is no double-page height to reserve, so the stage hugs the page. */
   .spread {
     aspect-ratio: auto;
   }
-  /* With no reserved stage height there is nothing to fit inside, so the
-     ratio-aware cap has no meaning here — and left in place it would squash a
-     lone portrait page to half the column. `.isSingle` still holds one to
-     min(540px, 90vw); a spread, being two pages wide, takes the full column. */
   .page {
     max-width: 100%;
-  }
-  .controls {
-    gap: 0.4rem;
   }
 }
 

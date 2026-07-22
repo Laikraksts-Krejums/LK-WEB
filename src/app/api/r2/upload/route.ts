@@ -3,14 +3,6 @@ import { NextResponse } from "next/server";
 import { issueObjectKey } from "@/domain/keys";
 import { apiVersion, dataset, projectId } from "@/sanity/env";
 
-/**
- * The only endpoint that writes to storage. Called from the Studio's pages
- * input; same-origin, via the R2 binding, so there are no S3 keys and no CORS.
- *
- * Object keys are minted server-side, so a client cannot traverse paths or
- * overwrite another issue's pages.
- */
-
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const EXT_BY_TYPE: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -19,8 +11,7 @@ const EXT_BY_TYPE: Record<string, string> = {
 };
 const MAX_BYTES = 15 * 1024 * 1024;
 
-/** Cached briefly so an 18-file drop isn't 18 round-trips. Pruned on read so a
-    long-lived isolate cannot accumulate revoked tokens. */
+// Cached so an 18-file drop isn't 18 round-trips; pruned on read to drop revoked tokens.
 const verified = new Map<string, number>();
 const VERIFY_TTL_MS = 60_000;
 
@@ -32,16 +23,7 @@ function isVerified(token: string): boolean {
   return (verified.get(token) ?? 0) > now;
 }
 
-/**
- * Asks Sanity whether this token may actually write to this project's dataset,
- * by dry-running a create it never commits.
- *
- * Checking project *membership* is not enough: a read-only viewer token is a
- * member, so it would pass and could then write junk into the bucket. This asks
- * the question we actually care about, and Sanity answers it authoritatively —
- * a viewer token comes back 403 "permission create required". The host is
- * project-scoped, so a token from another project fails here too.
- */
+// Dry-run create: membership is NOT enough — a read-only viewer token is a member.
 async function canWriteToProject(token: string): Promise<boolean> {
   if (isVerified(token)) return true;
 
@@ -63,8 +45,7 @@ async function canWriteToProject(token: string): Promise<boolean> {
       },
     );
   } catch {
-    // Fail closed: if Sanity is unreachable we cannot confirm write access.
-    return false;
+    return false; // fail closed
   }
   if (!res.ok) return false;
 
@@ -106,8 +87,7 @@ export async function POST(request: Request) {
     /[^a-zA-Z0-9_-]/g,
     "",
   );
-  // A stripped id, or one that was only dots, is rejected outright rather than
-  // relying on R2's flat keyspace to neutralise `issues/../…`.
+  // Reject a stripped/dots-only id rather than trusting R2 to neutralise `issues/../…`.
   if (!issueId) {
     return NextResponse.json({ error: "missing issueId" }, { status: 400 });
   }
@@ -117,7 +97,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "file too large" }, { status: 413 });
   }
 
-  // Minted here, never taken from the client.
   const key = issueObjectKey(issueId, EXT_BY_TYPE[contentType]);
 
   const { env } = getCloudflareContext();
@@ -143,9 +122,7 @@ export async function POST(request: Request) {
   return NextResponse.json({ key });
 }
 
-/** Reads the body a chunk at a time, aborting once it passes MAX_BYTES — so an
-    understated content-length cannot make the isolate buffer an arbitrarily
-    large upload before the size is checked. */
+// Bounded read: an understated content-length can't make us buffer an unbounded upload.
 async function readBounded(request: Request): Promise<Uint8Array | null> {
   const reader = request.body?.getReader();
   if (!reader) {

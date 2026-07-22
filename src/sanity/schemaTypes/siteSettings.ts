@@ -1,6 +1,5 @@
 import { defineField, defineType } from "sanity";
 
-/** Singleton. Everything here is editable without a deploy. */
 export const siteSettings = defineType({
   name: "siteSettings",
   title: "Site settings",

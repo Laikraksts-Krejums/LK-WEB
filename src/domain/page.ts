@@ -1,16 +1,6 @@
-// One uploaded image is one printed page — unless it is a landscape scan of a
-// two-page spread, in which case one image is two printed pages. Shared by the
-// server mapper and the Studio, so the editor's preview cannot disagree with
-// the reader.
-
 export type PageLayout = "auto" | "single" | "spread";
 
-/**
- * `layout` is the editor's override; `auto`/`undefined` reads the scan's shape.
- * Missing or zero dimensions mean the upload was never measured — assume single:
- * a spread shown single is merely small, but a single shown as a spread
- * mis-numbers every page after it.
- */
+// Unmeasured uploads assume single — the reverse mis-numbers every page after.
 export function isSpreadImage(
   layout: string | undefined,
   width: number | undefined,
@@ -21,11 +11,7 @@ export function isSpreadImage(
   return !!width && !!height && width > height;
 }
 
-/**
- * Printed page numbers, indexed by IMAGE INDEX (printed numbering runs ahead of
- * image indices after the first spread). Display only — hotspots are addressed
- * by image index and must stay that way; nothing here may look a hotspot up.
- */
+/** Printed page numbers by IMAGE INDEX; display only — hotspots stay image-indexed. */
 export type PageNumbering = {
   first: number[];
   last: number[];

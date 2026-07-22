@@ -3,8 +3,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { IssueCard } from "@/components/IssueCard";
 import { getAllIssues } from "@/server/issues";
 
-// Must be a literal: Next reads route segment config statically, so an
-// imported constant here fails the build. Mirrors REVALIDATE_SECONDS.
+// Must be a literal — Next reads segment config statically. Mirrors REVALIDATE_SECONDS.
 export const revalidate = 300;
 
 export const metadata: Metadata = {

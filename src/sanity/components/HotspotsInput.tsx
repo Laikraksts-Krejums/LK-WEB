@@ -40,22 +40,11 @@ function hasPlacement(item: HotspotItem): item is HotspotItem & CanvasHotspot {
   );
 }
 
-/**
- * Replaces blind `left`/`right`/`top`/`height` percentage entry with a canvas
- * showing the actual page image: draw a box to create a hotspot, drag/resize
- * an existing one to reposition it. Lives on the `hotspots` array (not the
- * `hotspot` object) so one page image loads once and can hold several
- * hotspots at a time — e.g. the back cover's Instagram handle and email.
- *
- * `target`/`link`/`customHref`/`label` aren't the pain point (placement is),
- * so they stay on Sanity's own default array-item accordion, rendered via
- * `renderDefault` below the canvas — the same pattern `R2PagesInput` uses.
- */
+// On the ARRAY, not the item, so one page image serves several hotspots.
 export function HotspotsInput(props: ArrayOfObjectsInputProps) {
   const { value, onChange, renderDefault } = props;
   const pagesValue = useFormValue(["pages"]) as PageValue[] | undefined;
-  // The `?? []` would otherwise mint a new array every render and re-run every
-  // memo below it.
+  // Memoised so the `?? []` doesn't mint a new array every render.
   const pages = useMemo(() => pagesValue ?? [], [pagesValue]);
   const items = useMemo(() => (value as HotspotItem[] | undefined) ?? [], [value]);
 
@@ -66,9 +55,7 @@ export function HotspotsInput(props: ArrayOfObjectsInputProps) {
 
   const page = pages[currentPage - 1];
 
-  // The paginator addresses IMAGES (so does hotspot.pageNumber), but an editor
-  // holding the printed magazine counts printed pages, and a spread makes the
-  // two diverge. Show both so the numbers can be reconciled here.
+  // Show both image and printed numbering; a spread makes them diverge.
   const numbering = useMemo(
     () =>
       buildPageNumbering(

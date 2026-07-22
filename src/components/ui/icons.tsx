@@ -2,8 +2,6 @@ type IconProps = {
   className?: string;
 };
 
-/* Hand-drawn glyph set (Krējums sketch language): a single wobbly stroke, round
-   caps + joins, no fill. One `currentColor`, so the button around it colours it. */
 const svgBase = {
   width: 22,
   height: 22,
@@ -74,9 +72,6 @@ export function IconMenu({ className }: IconProps) {
   );
 }
 
-/* A single wobbly ink line, drawn to span its box (preserveAspectRatio none, so
-   width follows the element it underlines). Used as the nav hover/active mark
-   and as the menu's hand-drawn separator. */
 export function IconUnderline({ className }: IconProps) {
   return (
     <svg

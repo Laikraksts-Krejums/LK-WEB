@@ -1,7 +1,5 @@
 import { clsx } from "clsx";
 
-// The mono, lowercase, wide-tracked label used as an issue-number/section
-// eyebrow. Colour and exact size come from the caller.
 export function Eyebrow({
   className,
   children,

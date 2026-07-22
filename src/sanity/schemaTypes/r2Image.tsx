@@ -2,10 +2,6 @@ import { defineField, defineType } from "sanity";
 import { isSpreadImage } from "@/domain/page";
 import { r2PublicUrl } from "@/lib/r2";
 
-/**
- * A pointer to a page image in R2 — Sanity meters bandwidth, R2 egress is free.
- * `key` is written by the server on upload; editors never type it.
- */
 export const r2Image = defineType({
   name: "r2Image",
   title: "Page",
@@ -45,19 +41,12 @@ export const r2Image = defineType({
         ],
         layout: "radio",
       },
-      // Deliberately not required: every page uploaded before this field existed
-      // has no value, and a required field would invalidate every published issue.
+      // Not required: pages uploaded before this field existed have no value.
     }),
     defineField({
       name: "originalFilename",
       title: "Filename",
       type: "string",
-      readOnly: true,
-    }),
-    defineField({
-      name: "size",
-      title: "Size (bytes)",
-      type: "number",
       readOnly: true,
     }),
     defineField({
@@ -75,8 +64,6 @@ export const r2Image = defineType({
       width: "width",
       height: "height",
     },
-    // The subtitle says which pages the reader thinks this image holds, so a
-    // misread scan is visible in the list without opening the row.
     prepare({ key, filename, alt, layout, width, height }) {
       const kind = isSpreadImage(layout, width, height)
         ? "two-page spread"

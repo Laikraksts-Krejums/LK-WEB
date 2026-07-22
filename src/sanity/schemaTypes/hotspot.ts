@@ -1,20 +1,12 @@
 import { defineField, defineType } from "sanity";
 
-/**
- * An invisible link over a printed one. Per-issue data, not CSS: issue I's
- * coordinates will be wrong for issue II, and moving a link shouldn't need a
- * deploy. Points at either a reusable Link (see siteLink.ts) or a one-off URL
- * typed in here.
- */
 export const hotspot = defineType({
   name: "hotspot",
   title: "Page link",
   type: "object",
   fields: [
     defineField({
-      // Named for printed pages, but it has always addressed IMAGES — the
-      // position in the issue's Pages list. Renaming the field would be a data
-      // migration; the wording is what was wrong.
+      // Named for pages but addresses IMAGES; renaming would be a data migration.
       name: "pageNumber",
       title: "Page image",
       description:
@@ -72,7 +64,6 @@ export const hotspot = defineType({
       validation: (rule) => rule.required(),
     }),
 
-    // Percentages of the page box, so they hold at any render size.
     defineField({
       name: "left",
       title: "From left (%)",
