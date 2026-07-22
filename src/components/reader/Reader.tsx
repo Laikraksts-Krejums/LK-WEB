@@ -7,7 +7,7 @@ import { buildPageNumbering } from "@/domain/page";
 import type { ReaderHotspot, ReaderPage } from "@/domain/types";
 import { PageList } from "./PageList";
 import { ReaderControls } from "./ReaderControls";
-import { useBackgroundDecode } from "./useBackgroundDecode";
+import { usePagePreload } from "./usePagePreload";
 import { useIsMobile } from "./useIsMobile";
 import { useZoom } from "./useZoom";
 import { buildViews, findViewIndex, pageRangeLabel } from "@/domain/views";
@@ -103,22 +103,7 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
     };
   }, [pages]);
 
-  useBackgroundDecode(imgRefs, ready);
-
-  // A fast reader can outrun the idle decode sweep — force the neighbours eager.
-  useEffect(() => {
-    if (!ready) return;
-    const targets = new Set<number>();
-    for (let v = current - 1; v <= current + 1; v++) {
-      views[v]?.pages.forEach((i) => targets.add(i));
-    }
-    targets.forEach((i) => {
-      const img = imgRefs.current[i];
-      if (!img) return;
-      img.loading = "eager";
-      img.decode?.().catch(() => {});
-    });
-  }, [current, views, ready]);
+  usePagePreload(imgRefs, views, current, ready);
 
   const currentRef = useRef(0);
   const viewCountRef = useRef(views.length);
