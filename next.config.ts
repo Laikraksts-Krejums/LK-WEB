@@ -18,9 +18,17 @@ const nextConfig: NextConfig = {
   },
 
   async redirects() {
-    // Two rules, not one: with `:path*` the bare /studio matches zero segments
-    // and Next emits the literal "/admin/:path*" as the Location header.
     return [
+      // Send www and everything under it to the bare domain, so search engines
+      // see one canonical site instead of two identical copies.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.laikrakstskrejums.lv" }],
+        destination: "https://laikrakstskrejums.lv/:path*",
+        permanent: true,
+      },
+      // Two rules, not one: with `:path*` the bare /studio matches zero segments
+      // and Next emits the literal "/admin/:path*" as the Location header.
       { source: "/studio", destination: "/admin", permanent: true },
       { source: "/studio/:path+", destination: "/admin/:path+", permanent: true },
     ];
