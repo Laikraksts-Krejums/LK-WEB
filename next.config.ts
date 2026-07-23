@@ -20,11 +20,20 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       // Send www and everything under it to the bare domain, so search engines
-      // see one canonical site instead of two identical copies.
+      // see one canonical site instead of two identical copies. Two rules for
+      // the same reason as /studio below: on Workers, `:path*` matching zero
+      // segments emits the literal ":path*" in the Location header, so the bare
+      // www root gets its own static rule.
       {
-        source: "/:path*",
+        source: "/",
         has: [{ type: "host", value: "www.laikrakstskrejums.lv" }],
-        destination: "https://laikrakstskrejums.lv/:path*",
+        destination: "https://laikrakstskrejums.lv/",
+        permanent: true,
+      },
+      {
+        source: "/:path+",
+        has: [{ type: "host", value: "www.laikrakstskrejums.lv" }],
+        destination: "https://laikrakstskrejums.lv/:path+",
         permanent: true,
       },
       // Two rules, not one: with `:path*` the bare /studio matches zero segments
