@@ -86,20 +86,47 @@ export function Reader({ pages, hotspots = [] }: ReaderProps) {
     imgRefs.current[index] = el;
   }, []);
 
+  // Readiness must never wedge: it gates the loading overlay, zoom and preload,
+  // so any single path that can hang leaves the whole reader dead. iOS Safari's
+  // img.decode() can return a promise that neither resolves nor rejects when the
+  // image isn't paintable at call time, so we never rely on it alone — decode,
+  // load and complete all race, plus a hard timeout backstop, plus a short poll
+  // in case the first <img> ref isn't attached yet on the first pass.
   useEffect(() => {
     let cancelled = false;
-    const first = imgRefs.current[0];
-    if (!first) return;
+    let poll: ReturnType<typeof setTimeout> | undefined;
 
     const done = () => {
       if (!cancelled) setReady(true);
     };
-    if (first.decode) first.decode().then(done, done);
-    else if (first.complete) done();
-    else first.addEventListener("load", done, { once: true });
+
+    const arm = (first: HTMLImageElement) => {
+      if (first.complete) {
+        done();
+        return;
+      }
+      first.addEventListener("load", done, { once: true });
+      first.addEventListener("error", done, { once: true });
+      // decode() is a best-effort accelerator; if it settles first, great, but
+      // load/error/timeout are what actually guarantee we get here.
+      first.decode?.().then(done, done);
+    };
+
+    const tryArm = () => {
+      if (cancelled) return;
+      const first = imgRefs.current[0];
+      if (first) arm(first);
+      else poll = setTimeout(tryArm, 50);
+    };
+    tryArm();
+
+    // Hard backstop: never let the overlay outlive a stalled/hung signal.
+    const timeout = setTimeout(done, 2000);
 
     return () => {
       cancelled = true;
+      if (poll) clearTimeout(poll);
+      clearTimeout(timeout);
     };
   }, [pages]);
 
