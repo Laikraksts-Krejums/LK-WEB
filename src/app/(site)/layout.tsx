@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "../globals.css";
 import { Masthead } from "@/components/Masthead";
 import { R2_PUBLIC_ORIGIN } from "@/lib/r2";
-import { SITE_DEFAULTS, SITE_NAME, SITE_URL } from "@/lib/site";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { getAllIssues, getSiteLinkUrls, getSiteSettings } from "@/server/issues";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase: new URL(SITE_URL),
-    title: SITE_DEFAULTS.title,
+    title: settings.title,
     description: settings.tagline,
     keywords: settings.keywords,
     alternates: { canonical: "/" },
@@ -19,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       siteName: SITE_NAME,
-      title: SITE_DEFAULTS.title,
+      title: settings.title,
       description: settings.tagline,
       locale: "lv_LV",
       url: SITE_URL,
@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: SITE_DEFAULTS.title,
+      title: settings.title,
       description: settings.tagline,
       images: [ogImage],
     },

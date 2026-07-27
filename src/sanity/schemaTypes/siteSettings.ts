@@ -6,6 +6,14 @@ export const siteSettings = defineType({
   type: "document",
   fields: [
     defineField({
+      name: "title",
+      title: "Browser title",
+      description:
+        "Shown in the browser tab and as the search engine result heading.",
+      type: "string",
+      validation: (rule) => rule.required(),
+    }),
+    defineField({
       name: "tagline",
       title: "Tagline",
       description:

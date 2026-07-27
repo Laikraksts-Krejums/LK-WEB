@@ -17,6 +17,7 @@ export const REVALIDATE_SECONDS = 300;
 const cacheOpts = { next: { revalidate: REVALIDATE_SECONDS } };
 
 export type SiteSettings = {
+  title: string;
   tagline: string;
   keywords?: string[];
   ogImageUrl?: string;
@@ -59,6 +60,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     .catch(() => null);
 
   return {
+    title: doc?.title ?? SITE_DEFAULTS.title,
     tagline: doc?.tagline ?? SITE_DEFAULTS.tagline,
     keywords: doc?.keywords ?? [...SITE_DEFAULTS.keywords],
     ogImageUrl: doc?.ogImage ? urlForImage(doc.ogImage, 1200) : "/og-image.jpg",
