@@ -52,7 +52,8 @@ export const SITE_SETTINGS_QUERY = defineQuery(`
     tagline,
     keywords,
     ogImage,
-    favicon
+    favicon,
+    buy
   }
 `);
 

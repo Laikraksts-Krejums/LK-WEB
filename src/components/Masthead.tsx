@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BuyLink } from "./BuyLink";
 import { IssueNav } from "./IssueNav";
 import type { IssueSummary } from "@/domain/types";
 
@@ -6,7 +7,7 @@ import type { IssueSummary } from "@/domain/types";
 export function Masthead({ issues }: { issues: IssueSummary[] }) {
   return (
     <header className="relative mb-[clamp(1rem,2vw,1.5rem)] flex items-center justify-between gap-4 mobile:gap-2">
-      <Link href="/" aria-label="krējums." className="group">
+      <Link href="/" aria-label="krējums." className="group flex-none">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logo.webp"
@@ -16,7 +17,10 @@ export function Masthead({ issues }: { issues: IssueSummary[] }) {
           className="block h-auto w-[clamp(64px,7vw,90px)] -rotate-3 transition-transform duration-500 ease-[cubic-bezier(0.3,1.3,0.4,1)] group-hover:rotate-2 group-hover:scale-105 motion-reduce:transition-none"
         />
       </Link>
-      <IssueNav issues={issues} />
+      <div className="flex min-w-0 items-center gap-2 mobile:gap-1">
+        <BuyLink />
+        <IssueNav issues={issues} />
+      </div>
     </header>
   );
 }

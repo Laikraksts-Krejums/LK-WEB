@@ -18,4 +18,9 @@ export const SITE_DEFAULTS = {
     "krejums magazine",
     "nenoliec karoti",
   ],
+  buy: {
+    instagram: "laikrakstskrejums",
+    phone: "+371 20 246 668",
+    codeword: "dzīves skrējums",
+  },
 } as const;

@@ -85,7 +85,7 @@ export function IconUnderline({ className }: IconProps) {
       aria-hidden
       className={className}
     >
-      <path d="M1.5 5.2 C16 2.6 31 6.4 46 4.1 C61 1.9 76 6.1 98.5 3.6" />
+      <path pathLength={1} d="M1.5 5.2 C16 2.6 31 6.4 46 4.1 C61 1.9 76 6.1 98.5 3.6" />
     </svg>
   );
 }
