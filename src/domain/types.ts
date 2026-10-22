@@ -33,3 +33,9 @@ export type Issue = {
 };
 
 export type IssueSummary = Omit<Issue, "pages" | "hotspots">;
+
+export type BuyInfo = {
+  instagram: string;
+  phone: string;
+  codeword: string;
+};

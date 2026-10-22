@@ -41,6 +41,35 @@ export const siteSettings = defineType({
       description: "Square image, at least 512x512.",
       type: "image",
     }),
+    defineField({
+      name: "buy",
+      title: "“Gribu nopirkt krējumu” button",
+      description:
+        "Shown on the /nopirkt page, linked from the header. To link a magazine page there, point a hotspot at /nopirkt.",
+      type: "object",
+      options: { collapsible: true },
+      fields: [
+        defineField({
+          name: "instagram",
+          title: "Instagram username",
+          description: "Without the @.",
+          type: "string",
+          initialValue: "laikrakstskrejums",
+        }),
+        defineField({
+          name: "phone",
+          title: "Phone number",
+          type: "string",
+          initialValue: "+371 20 246 668",
+        }),
+        defineField({
+          name: "codeword",
+          title: "Codeword",
+          type: "string",
+          initialValue: "dzīves skrējums",
+        }),
+      ],
+    }),
   ],
   preview: {
     prepare: () => ({ title: "Site settings" }),

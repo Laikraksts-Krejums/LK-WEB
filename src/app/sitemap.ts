@@ -10,6 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: SITE_URL, changeFrequency: "monthly", priority: 1 },
     { url: `${SITE_URL}/numuri`, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${SITE_URL}/nopirkt`, changeFrequency: "yearly", priority: 0.5 },
     ...issues.map((issue) => ({
       url: `${SITE_URL}/numuri/${issue.slug}`,
       lastModified: issue.publishedAt ? new Date(issue.publishedAt) : undefined,

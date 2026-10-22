@@ -1,6 +1,6 @@
 import "server-only";
 import { isSpreadImage } from "@/domain/page";
-import type { Issue, IssueSummary, ReaderHotspot } from "@/domain/types";
+import type { BuyInfo, Issue, IssueSummary, ReaderHotspot } from "@/domain/types";
 import { r2PublicUrl } from "@/lib/r2";
 import { SITE_DEFAULTS } from "@/lib/site";
 import { client } from "@/sanity/client";
@@ -22,6 +22,7 @@ export type SiteSettings = {
   keywords?: string[];
   ogImageUrl?: string;
   faviconUrl?: string;
+  buy: BuyInfo;
 };
 
 type SanityImageRef = { asset?: { _ref?: string } };
@@ -65,6 +66,11 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     keywords: doc?.keywords ?? [...SITE_DEFAULTS.keywords],
     ogImageUrl: doc?.ogImage ? urlForImage(doc.ogImage, 1200) : "/og-image.jpg",
     faviconUrl: doc?.favicon ? urlForImage(doc.favicon, 512) : undefined,
+    buy: {
+      instagram: (doc?.buy?.instagram ?? SITE_DEFAULTS.buy.instagram).replace(/^@/, ""),
+      phone: doc?.buy?.phone ?? SITE_DEFAULTS.buy.phone,
+      codeword: doc?.buy?.codeword ?? SITE_DEFAULTS.buy.codeword,
+    },
   };
 }
 
