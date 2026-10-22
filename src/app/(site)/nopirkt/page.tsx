@@ -9,7 +9,7 @@ export const revalidate = 300;
 export const metadata: Metadata = {
   title: "gribi nopirkt krējumu? — krējums.",
   description:
-    "Gribi krējumu? Raksti instagramā vai zvani un saki kodvārdu.",
+    "Gribi krējumu? Raksti instagramā vai zvani un saki paroli.",
   alternates: { canonical: "/nopirkt" },
 };
 
@@ -48,7 +48,7 @@ export default async function BuyPage() {
         </li>
 
         <li>
-          <Eyebrow className="block text-orange">2. saki kodvārdu</Eyebrow>
+          <Eyebrow className="block text-orange">2. saki paroli</Eyebrow>
           <CopyCodeword codeword={buy.codeword} />
         </li>
       </ol>

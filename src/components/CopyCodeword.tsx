@@ -41,7 +41,7 @@ export function CopyCodeword({ codeword }: { codeword: string }) {
     <button
       type="button"
       onClick={copy}
-      aria-label={`kopēt kodvārdu „${codeword}”`}
+      aria-label={`kopēt paroli „${codeword}”`}
       className="group mt-1 inline-flex cursor-pointer flex-col items-center bg-transparent [-webkit-tap-highlight-color:transparent]"
     >
       <span
