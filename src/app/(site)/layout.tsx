@@ -7,7 +7,7 @@ import { getAllIssues, getSiteLinkUrls, getSiteSettings } from "@/server/issues"
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
-  const ogImage = settings.ogImageUrl ?? "/og-image.jpg";
+  const ogImage = settings.ogImageUrl ?? "/og";
 
   return {
     metadataBase: new URL(SITE_URL),

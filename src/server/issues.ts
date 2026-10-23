@@ -64,7 +64,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     title: doc?.title ?? SITE_DEFAULTS.title,
     tagline: doc?.tagline ?? SITE_DEFAULTS.tagline,
     keywords: doc?.keywords ?? [...SITE_DEFAULTS.keywords],
-    ogImageUrl: doc?.ogImage ? urlForImage(doc.ogImage, 1200) : "/og-image.jpg",
+    ogImageUrl: doc?.ogImage ? urlForImage(doc.ogImage, 1200) : undefined,
     faviconUrl: doc?.favicon ? urlForImage(doc.favicon, 512) : undefined,
     buy: {
       instagram: (doc?.buy?.instagram ?? SITE_DEFAULTS.buy.instagram).replace(/^@/, ""),
