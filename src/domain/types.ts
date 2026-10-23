@@ -28,6 +28,7 @@ export type Issue = {
   publishedAt?: string;
   blurb?: string;
   coverUrl?: string;
+  ogImageUrl?: string;
   pages: ReaderPage[];
   hotspots: ReaderHotspot[];
 };

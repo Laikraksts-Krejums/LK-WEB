@@ -20,6 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const issue = await getIssueBySlug(slug);
   if (!issue) return {};
 
+  const ogImage = issue.ogImageUrl ?? "/og-image.jpg";
+
   return {
     title: `${issue.title} — krējums.`,
     description: issue.blurb,
@@ -27,7 +29,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: `${issue.title} — krējums.`,
       description: issue.blurb,
-      images: issue.coverUrl ? [issue.coverUrl] : undefined,
+      images: [{ url: ogImage, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${issue.title} — krējums.`,
+      description: issue.blurb,
+      images: [ogImage],
     },
   };
 }

@@ -3,11 +3,16 @@ import "../globals.css";
 import { Masthead } from "@/components/Masthead";
 import { R2_PUBLIC_ORIGIN } from "@/lib/r2";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
-import { getAllIssues, getSiteLinkUrls, getSiteSettings } from "@/server/issues";
+import {
+  getAllIssues,
+  getLatestIssue,
+  getSiteLinkUrls,
+  getSiteSettings,
+} from "@/server/issues";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSiteSettings();
-  const ogImage = settings.ogImageUrl ?? "/og-image.jpg";
+  const [settings, latest] = await Promise.all([getSiteSettings(), getLatestIssue()]);
+  const ogImage = settings.ogImageUrl ?? latest?.ogImageUrl ?? "/og-image.jpg";
 
   return {
     metadataBase: new URL(SITE_URL),
