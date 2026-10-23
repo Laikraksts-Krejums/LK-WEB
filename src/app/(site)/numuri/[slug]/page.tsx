@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const issue = await getIssueBySlug(slug);
   if (!issue) return {};
 
-  const ogImage = `/og?issue=${encodeURIComponent(issue.slug)}`;
+  const ogImage = issue.ogImageUrl ?? "/og-image.jpg";
 
   return {
     title: `${issue.title} — krējums.`,

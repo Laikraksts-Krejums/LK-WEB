@@ -4,7 +4,7 @@ import type { BuyInfo, Issue, IssueSummary, ReaderHotspot } from "@/domain/types
 import { r2PublicUrl } from "@/lib/r2";
 import { SITE_DEFAULTS } from "@/lib/site";
 import { client } from "@/sanity/client";
-import { urlForImage } from "@/sanity/image";
+import { urlForImage, urlForOgCard } from "@/sanity/image";
 import {
   ALL_ISSUES_QUERY,
   ISSUE_BY_SLUG_QUERY,
@@ -102,6 +102,7 @@ function toSummary(doc: SanityIssue): IssueSummary {
     publishedAt: doc.publishedAt,
     blurb: doc.blurb,
     coverUrl: doc.coverImage ? urlForImage(doc.coverImage, 800) : undefined,
+    ogImageUrl: doc.coverImage ? urlForOgCard(doc.coverImage) : undefined,
   };
 }
 
