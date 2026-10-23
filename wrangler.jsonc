@@ -32,6 +32,14 @@
       }
     ]
   },
+  // The DO queue revalidates by calling the Worker through this; without it ISR stays STALE forever.
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "krejums"
+    }
+  ],
+
   "migrations": [
     {
       "tag": "v1",
@@ -76,7 +84,14 @@
             "class_name": "DOQueueHandler"
           }
         ]
-      }
+      },
+
+      "services": [
+        {
+          "binding": "WORKER_SELF_REFERENCE",
+          "service": "krejums-staging"
+        }
+      ]
     }
   }
 }
