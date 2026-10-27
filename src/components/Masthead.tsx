@@ -1,5 +1,5 @@
 import Link from "next/link";
-// import { BuyLink } from "./BuyLink";
+import { BuyLink } from "./BuyLink";
 import { IssueNav } from "./IssueNav";
 import type { IssueSummary } from "@/domain/types";
 
@@ -17,8 +17,7 @@ export function Masthead({ issues }: { issues: IssueSummary[] }) {
           className="block h-auto w-[clamp(64px,7vw,90px)] -rotate-3 transition-transform duration-500 ease-[cubic-bezier(0.3,1.3,0.4,1)] group-hover:rotate-2 group-hover:scale-105 motion-reduce:transition-none"
         />
       </Link>
-      {/* <BuyLink /> */}
-      <span aria-hidden />
+      <BuyLink />
       <IssueNav issues={issues} />
     </header>
   );
