@@ -1,5 +1,5 @@
 import Link from "next/link";
-// import { BuyLink } from "./BuyLink";
+import { BuyLink } from "./BuyLink";
 import { IssueNav } from "./IssueNav";
 import type { IssueSummary } from "@/domain/types";
 
